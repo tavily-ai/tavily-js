@@ -1,13 +1,17 @@
+export type TavilySearchFuncton = (query: string, options: TavilySearchOptions) => Promise<TavilySearchResponse>;
+
+export type TavilyExtractFunction = (urls: Array<string>) => Promise<TavilyExtractResponse>;
+
 export type TavilyClient = {
-  search: (query: string, options: SearchOptions) => Promise<any>;
-  extract: (urls: Array<string>) => Promise<void>;
+  search: TavilySearchFuncton;
+  extract: TavilyExtractFunction;
 };
 
 export type TavilyClientOptions = {
   apiKey?: string;
 };
 
-export type SearchOptions = {
+export type TavilySearchOptions = {
   searchDepth?: "basic" | "advanced";
   topic?: "general" | "news" | "finance";
   days?: number;
@@ -25,7 +29,7 @@ type TavilyImage = {
   description?: string;
 };
 
-type TavilyResult = {
+type TavilySearchResult = {
   title: string;
   url: string;
   content: string;
@@ -34,10 +38,26 @@ type TavilyResult = {
   publishedDate: string;
 };
 
-export type TavilyResponse = {
+export type TavilySearchResponse = {
   answer?: string;
   query: string;
   responseTime: number;
   images: Array<TavilyImage>;
-  results: Array<TavilyResult>;
-}
+  results: Array<TavilySearchResult>;
+};
+
+type TavilyExtractResult = {
+  url: string;
+  rawContent: string;
+};
+
+type TavilyExtractFailedResult = {
+  url: string;
+  error: string;
+};
+
+export type TavilyExtractResponse = {
+  results: Array<TavilyExtractResult>;
+  failedResults: Array<TavilyExtractFailedResult>;
+  responseTime: number;
+};

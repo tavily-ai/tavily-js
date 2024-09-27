@@ -1,10 +1,10 @@
-import { SearchOptions } from "./types";
+import { TavilySearchOptions, TavilySearchFuncton } from "./types";
 import { post } from "./utils";
 
-export function _search(apiKey: string) {
+export function _search(apiKey: string): TavilySearchFuncton {
   return async function search(
     query: string,
-    options: SearchOptions = {
+    options: TavilySearchOptions = {
       searchDepth: "basic",
       topic: "general",
       days: 3,
@@ -49,7 +49,7 @@ export function _search(apiKey: string) {
           rawContent: result.raw_content,
           score: result.score,
           publishedDate: result.published_date,
-        }
+        };
       }),
       answer: response.data.answer,
     };
