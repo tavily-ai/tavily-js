@@ -8,5 +8,13 @@ export type TavilyClientOptions = {
 };
 
 export type SearchOptions = {
-  max_results: number;
+  searchDepth?: "basic" | "advanced";
+  topic?: "general" | "news" | "finance";
+  days?: number;
+  maxResults?: number;
+  includeImages?: boolean;
+  includeAnswer?: boolean;
+  includeRawContent?: boolean;
+  includeDomains?: undefined | Array<string>;
+  excludeDomains?: undefined | Array<string>;
 };
