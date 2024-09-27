@@ -1,0 +1,31 @@
+{
+  "name": "@tavily/core",
+  "version": "0.0.1",
+  "description": "Official JavaScript library for Tavily.",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "homepage": "https://tavily.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tavily-ai/tavilyjs"
+  },
+  "scripts": {
+    "build": "tsup"
+  },
+  "keywords": [
+    "llm",
+    "ai",
+    "machine learning",
+    "ml",
+    "embeddings",
+    "vectorstores",
+    "tavily"
+  ],
+  "author": "Tavily",
+  "license": "MIT",
+  "devDependencies": {
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.2"
+  }
+}
