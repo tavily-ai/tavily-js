@@ -25,7 +25,11 @@
   "author": "Tavily",
   "license": "MIT",
   "devDependencies": {
+    "@types/node": "^22.7.3",
     "tsup": "^8.3.0",
     "typescript": "^5.6.2"
+  },
+  "dependencies": {
+    "axios": "^1.7.7"
   }
 }
