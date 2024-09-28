@@ -1,5 +1,5 @@
 {
-  "name": "@tavily/core",
+  "name": "@tavily/api",
   "version": "0.0.1",
   "description": "Official JavaScript library for Tavily.",
   "main": "./dist/index.js",

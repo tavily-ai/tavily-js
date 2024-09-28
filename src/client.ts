@@ -1,5 +1,5 @@
 import { TavilyClientOptions, TavilyClient } from "./types";
-import { _search } from "./search";
+import { _search, _searchQNA, _searchContext } from "./search";
 import { _extract } from "./extract";
 
 export function tavily(options?: TavilyClientOptions): TavilyClient {
@@ -11,5 +11,7 @@ export function tavily(options?: TavilyClientOptions): TavilyClient {
   return {
     search: _search(apiKey),
     extract: _extract(apiKey),
+    searchQNA: _searchQNA(apiKey),
+    searchContext: _searchContext(apiKey)
   };
 }
