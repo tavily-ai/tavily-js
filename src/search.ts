@@ -1,5 +1,7 @@
 import { TavilySearchOptions, TavilySearchFuncton, TavilyQNASearchFuncton, TavilyContextSearchFuncton} from "./types";
-import { post } from "./utils";
+import { post, DEFAULT_MAX_TOKENS, getMaxTokensFromList } from "./utils";
+
+
 
 export function _search(apiKey: string): TavilySearchFuncton {
   return async function search(
@@ -15,6 +17,7 @@ export function _search(apiKey: string): TavilySearchFuncton {
       includeRawContent: false,
       includeDomains: undefined,
       excludeDomains: undefined,
+      maxTokens: undefined
     }
   ) {
     const response = await post("search", {
@@ -70,6 +73,7 @@ export function _searchQNA(apiKey: string):  TavilyQNASearchFuncton {
       includeRawContent: false,
       includeDomains: undefined,
       excludeDomains: undefined,
+      maxTokens: undefined
     }
   ) {
     const response = await post("search", {
@@ -107,6 +111,7 @@ export function _searchContext(apiKey: string): TavilyContextSearchFuncton {
       includeRawContent: false,
       includeDomains: undefined,
       excludeDomains: undefined,
+      maxTokens: DEFAULT_MAX_TOKENS
     }
   ) {
     const response = await post("search", {
@@ -122,6 +127,7 @@ export function _searchContext(apiKey: string): TavilyContextSearchFuncton {
       include_raw_content: false,
       include_domains: options.includeDomains,
       exclude_domains: options.excludeDomains,
+      max_tokens: options.maxTokens
     });
 
     const sources = response.data?.results || [];
@@ -133,7 +139,7 @@ export function _searchContext(apiKey: string): TavilyContextSearchFuncton {
       }
     });
 
-    return JSON.stringify(context);
+    return JSON.stringify(getMaxTokensFromList(context, options.maxTokens));
 
   };
 }

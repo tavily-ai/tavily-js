@@ -28,6 +28,7 @@ export type TavilySearchOptions = {
   includeRawContent?: boolean;
   includeDomains?: undefined | Array<string>;
   excludeDomains?: undefined | Array<string>;
+  maxTokens?: undefined | number;
 };
 
 type TavilyImage = {

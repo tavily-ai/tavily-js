@@ -1,5 +1,5 @@
 {
-  "name": "@tavily/api",
+  "name": "@tavily/core",
   "version": "0.0.1",
   "description": "Official JavaScript library for Tavily.",
   "main": "./dist/index.js",
@@ -30,6 +30,7 @@
     "typescript": "^5.6.2"
   },
   "dependencies": {
-    "axios": "^1.7.7"
+    "axios": "^1.7.7",
+    "js-tiktoken": "^1.0.14"
   }
 }
