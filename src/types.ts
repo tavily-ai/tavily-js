@@ -1,9 +1,15 @@
 export type TavilySearchFuncton = (query: string, options: TavilySearchOptions) => Promise<TavilySearchResponse>;
 
+export type TavilyQNASearchFuncton = (query: string, options: TavilySearchOptions) => Promise<string>;
+
+export type TavilyContextSearchFuncton = (query: string, options: TavilySearchOptions) => Promise<string>;
+
 export type TavilyExtractFunction = (urls: Array<string>) => Promise<TavilyExtractResponse>;
 
 export type TavilyClient = {
   search: TavilySearchFuncton;
+  searchQNA: TavilyQNASearchFuncton;
+  searchContext: TavilyContextSearchFuncton;
   extract: TavilyExtractFunction;
 };
 
@@ -22,6 +28,7 @@ export type TavilySearchOptions = {
   includeRawContent?: boolean;
   includeDomains?: undefined | Array<string>;
   excludeDomains?: undefined | Array<string>;
+  maxTokens?: undefined | number;
 };
 
 type TavilyImage = {
