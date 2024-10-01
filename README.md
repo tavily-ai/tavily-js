@@ -1,4 +1,7 @@
-# Getting Started with Tavily.js
+# Tavily JavaScript SDK
+
+> We're excited to announce the release of our JavaScript SDK! Please keep in mind that this package is still in Beta, and is therefore subject to change in the future. Please report any bugs and send all feedback to [support@tavily.com](mailto:support@tavily.com) or our [Developer Community](https://community.tavily.com). We're excited to see what you build with Tavily!
+
 Tavily.js allows for easy interaction with the Tavily API, offering the full range of our search and extract functionalities directly from your JavaScript and TypeScript programs. Easily integrate smart search and content extraction capabilities into your applications, harnessing Tavily's powerful search and extract features.
 
 ## Installing
@@ -60,7 +63,7 @@ console.log(answer);
 ```
 This is how you get accurate and concise answers to questions, in one line of code. Perfect for usage by LLMs!
 
-# Getting Started with Tavily Extract
+# Tavily Extract
 
 > We’re excited to announce the release of the Tavily Extract feature! This feature is still in beta, so please report any bugs or send feedback to [support@tavily.com](mailto:support@tavily.com). 
 
