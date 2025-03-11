@@ -36,7 +36,7 @@
     "typescript": "^5.6.2"
   },
   "dependencies": {
-    "axios": "^1.7.7",
+    "axios": "^1.8.2",
     "js-tiktoken": "^1.0.14"
   }
 }
