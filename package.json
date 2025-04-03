@@ -17,7 +17,8 @@
     "url": "https://github.com/tavily-ai/tavily-js.git"
   },
   "scripts": {
-    "build": "tsup"
+    "build": "tsup",
+    "test": "jest --config jest.config.js"
   },
   "keywords": [
     "llm",
@@ -31,7 +32,10 @@
   "author": "Tavily",
   "license": "MIT",
   "devDependencies": {
+    "@types/jest": "^29.5.14",
     "@types/node": "^22.7.4",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.3.1",
     "tsup": "^8.3.6",
     "typescript": "^5.6.2"
   },
