@@ -1,6 +1,6 @@
 {
   "name": "@tavily/core",
-  "version": "0.3.4",
+  "version": "0.4.0",
   "description": "Official JavaScript library for Tavily.",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -27,7 +27,9 @@
     "ml",
     "embeddings",
     "vectorstores",
-    "tavily"
+    "tavily",
+    "n8n-community-node-package",
+    "n8n-nodes-tavily"
   ],
   "author": "Tavily",
   "license": "MIT",
@@ -43,5 +45,8 @@
     "axios": "^1.7.7",
     "https-proxy-agent": "^7.0.6",
     "js-tiktoken": "^1.0.14"
+  },
+  "overrides": {
+    "esbuild": "^0.25.0"
   }
 }

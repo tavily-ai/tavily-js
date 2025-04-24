@@ -18,11 +18,23 @@ export type TavilyExtractFunction = (
   options: TavilyExtractOptions
 ) => Promise<TavilyExtractResponse>;
 
+export type TavilyCrawlFunction = (
+  url: string,
+  options: TavilyCrawlOptions
+) => Promise<TavilyCrawlResponse>;
+
+export type TavilyMapFunction = (
+  url: string,
+  options: TavilyMapOptions
+) => Promise<TavilyMapResponse>;
+
 export type TavilyClient = {
   search: TavilySearchFuncton;
   searchQNA: TavilyQNASearchFuncton;
   searchContext: TavilyContextSearchFuncton;
   extract: TavilyExtractFunction;
+  crawl: TavilyCrawlFunction;
+  map: TavilyMapFunction;
 };
 
 export type TavilyProxyOptions = {
@@ -93,8 +105,67 @@ type TavilyExtractFailedResult = {
   error: string;
 };
 
+export type TavilyCrawlCategory =
+  | "Documentation"
+  | "Blog"
+  | "About"
+  | "Contact"
+  | "Pricing"
+  | "Careers"
+  | "E-Commerce"
+  | "Developers"
+  | "Partners"
+  | "Downloads"
+  | "Media"
+  | "Events";
+
+export type TavilyCrawlCategories = Set<TavilyCrawlCategory>;
+
 export type TavilyExtractResponse = {
   results: Array<TavilyExtractResult>;
   failedResults: Array<TavilyExtractFailedResult>;
   responseTime: number;
 };
+
+export type TavilyCrawlOptions = {
+  maxDepth: number;
+  maxBreadth: number;
+  limit: number;
+  query: string;
+  extractDepth: "basic" | "advanced";
+  selectPaths: string[];
+  selectDomains: string[];
+  allowExternal: boolean;
+  categories: TavilyCrawlCategory[];
+  timeout: number;
+  [key: string]: any;
+};
+
+export type TavilyCrawlResponse = {
+  responseTime: number;
+  baseUrl: string;
+  results: Array<{
+    url: string;
+    rawContent: string;
+    images: Array<string>;
+  }>;
+};
+
+export type TavilyMapOptions = {
+  limit: number;
+  maxDepth: number;
+  maxBreadth: number;
+  selectPaths: string[];
+  selectDomains: string[];
+  categories: TavilyCrawlCategory[];
+  allowExternal: boolean;
+  query: string;
+  timeout: number;
+  [key: string]: any;
+}
+
+export type TavilyMapResponse = {
+  responseTime: number;
+  baseUrl: string;
+  results: string[];
+}

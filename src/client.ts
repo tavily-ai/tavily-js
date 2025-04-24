@@ -1,6 +1,8 @@
 import { TavilyClientOptions, TavilyClient, TavilyProxyOptions } from "./types";
 import { _search, _searchQNA, _searchContext } from "./search";
 import { _extract } from "./extract";
+import { _crawl } from "./crawl";
+import { _map } from "./map";
 
 export function tavily(options?: TavilyClientOptions): TavilyClient {
   const apiKey = options?.apiKey || process.env.TAVILY_API_KEY;
@@ -27,5 +29,7 @@ export function tavily(options?: TavilyClientOptions): TavilyClient {
     extract: _extract(apiKey, proxies),
     searchQNA: _searchQNA(apiKey, proxies),
     searchContext: _searchContext(apiKey, proxies),
+    crawl: _crawl(apiKey, proxies),
+    map: _map(apiKey, proxies),
   };
 }

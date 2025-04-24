@@ -67,6 +67,35 @@ for (let result of response.results) {
 
 > To learn more about the different parameters, head to our [JavaScript API Reference](https://docs.tavily.com/sdk/reference/javascript).
 
+# Tavily Crawl (Currently in Invitational Beta)
+
+Tavily Crawl is an agent‐first site explorer that leverages breadth‐first crawling to navigate websites. It uses natural-language goals to intelligently uncover deeply buried “needle-in-a-haystack” information or perform high-volume data retrieval across an entire site.
+
+## Usage
+
+Below is a simple code snippet demonstrating how to use Tavily Crawl. The different steps and components of this code are explained in more detail on the JavaScript [API Reference](https://docs.tavily.com/docs/javascript-sdk/tavily-crawl/api-reference) page.
+
+```javascript
+const { tavily } = require("@tavily/core");
+
+// Step 1. Instantiating your TavilyClient
+const tvly = tavily({ apiKey: "tvly-YOUR_API_KEY" });
+
+// Step 2. Defining the starting URL to crawl
+const base_url = "https://en.wikipedia.org/wiki/Artificial_intelligence"
+
+// Step 3. Executing the extract request
+response = await tvly.crawl(urls);
+
+// Step 4. Printing the extracted raw content
+response.results.forEach(({ url, raw_content }) => {
+  console.log(`URL: ${url}`);
+  console.log(`Raw Content: ${raw_content}\n`);
+});
+```
+
+> To learn more about the different parameters, head to our [JavaScript API Reference](https://docs.tavily.com/sdk/reference/javascript).
+
 ## Proxies
 
 If you want to use either client with specified HTTP or HTTPS proxies, you can do so by passing the proxies parameter as a dictionary in the format `{ http?: string, https?: string }`, where each key is optional, or by setting the `TAVILY_HTTP_PROXY` or `TAVILY_HTTPS_PROXY` environment variables.
