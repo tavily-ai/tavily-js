@@ -24,9 +24,9 @@ export function _map(
       excludePaths,
       excludeDomains,
       allowExternal,
-      categories,
       instructions,
       timeout,
+      includeFavicon,
       ...kwargs
     } = options;
 
@@ -45,8 +45,8 @@ export function _map(
           exclude_paths: excludePaths,
           exclude_domains: excludeDomains,
           allow_external: allowExternal,
-          categories,
           instructions,
+          include_favicon: includeFavicon,
           ...kwargs,
         },
         apiKey,

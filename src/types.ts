@@ -116,32 +116,6 @@ type TavilyExtractFailedResult = {
   error: string;
 };
 
-export type TavilyCrawlCategory =
-  | "Documentation"
-  | "Blog"
-  | "Blogs"
-  | "Community"
-  | "About"
-  | "Contact"
-  | "Privacy"
-  | "Terms"
-  | "Status"
-  | "Pricing"
-  | "Enterprise"
-  | "Careers"
-  | "E-Commerce"
-  | "Authentication"
-  | "Developer"
-  | "Developers"
-  | "Solutions"
-  | "Partners"
-  | "Downloads"
-  | "Media"
-  | "Events"
-  | "People";
-
-export type TavilyCrawlCategories = Set<TavilyCrawlCategory>;
-
 export type TavilyExtractResponse = {
   results: Array<TavilyExtractResult>;
   failedResults: Array<TavilyExtractFailedResult>;
@@ -160,7 +134,6 @@ export type TavilyCrawlOptions = {
   excludeDomains?: string[];
   allowExternal?: boolean;
   includeImages?: boolean;
-  categories?: TavilyCrawlCategory[];
   format?: "markdown" | "text";
   timeout?: number;
   includeFavicon?: boolean;
@@ -186,10 +159,10 @@ export type TavilyMapOptions = {
   selectDomains?: string[];
   excludePaths?: string[];
   excludeDomains?: string[];
-  categories?: TavilyCrawlCategory[];
   allowExternal?: boolean;
   instructions?: string;
   timeout?: number;
+  includeFavicon?: boolean;
   [key: string]: any;
 };
 
