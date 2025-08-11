@@ -1,6 +1,6 @@
 {
   "name": "@tavily/core",
-  "version": "0.5.10",
+  "version": "0.5.11",
   "description": "Official JavaScript library for Tavily.",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
