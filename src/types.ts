@@ -83,6 +83,7 @@ type TavilySearchResult = {
   rawContent?: string;
   score: number;
   publishedDate: string;
+  favicon?: string;
 };
 
 export type TavilySearchResponse = {
@@ -92,7 +93,6 @@ export type TavilySearchResponse = {
   images: Array<TavilyImage>;
   results: Array<TavilySearchResult>;
   autoParameters?: Partial<TavilySearchOptions>;
-  favicon?: string;
   requestId: string;
 };
 
