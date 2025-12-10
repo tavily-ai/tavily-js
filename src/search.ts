@@ -42,6 +42,7 @@ export function _search(
       autoParameters,
       timeout,
       includeFavicon,
+      includeUsage,
       ...kwargs
     } = options;
 
@@ -69,6 +70,7 @@ export function _search(
           end_date: endDate,
           auto_parameters: autoParameters,
           include_favicon: includeFavicon,
+          include_usage: includeUsage,
           ...kwargs,
         },
         apiKey,
@@ -108,6 +110,7 @@ export function _search(
             searchDepth: response.data.auto_parameters?.search_depth,
           },
         }),
+        ...(response.data.usage !== undefined && { usage: response.data.usage }),
       };
     } catch (err) {
       if (err instanceof AxiosError) {

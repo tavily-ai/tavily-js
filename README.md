@@ -29,6 +29,15 @@ const response = await tvly.search("Who is Leo Messi?");
 console.log(response);
 ```
 
+### Including credit usage data
+
+All search calls now accept an optional `includeUsage` boolean, which maps to the `include_usage` API parameter. It defaults to `false`. When set to `true`, the response will include a `usage` object describing the credits consumed by the request. Credit usage may be reported as `0` until certain thresholds are met, and the specific thresholds can vary by endpoint.
+
+```javascript
+const response = await tvly.search("Who is Leo Messi?", { includeUsage: true });
+console.log(response.usage); // { credits: ... }
+```
+
 > To learn more about the different parameters, head to our [JavaScript API Reference](https://docs.tavily.com/sdk/reference/javascript).
 
 # Tavily Extract
@@ -65,6 +74,10 @@ for (let result of response.results) {
 // Note that URLs that could not be extracted will be stored in response.failedResults
 ```
 
+### Including credit usage data
+
+`tvly.extract` also accepts the optional `includeUsage` flag (defaults to `false`). When you pass `{ includeUsage: true }`, the SDK forwards `include_usage: true` to the API and the response may contain a `usage` object with the credit usage for that extraction. Credit usage may be reported as `0` until a usage threshold is reached.
+
 > To learn more about the different parameters, head to our [JavaScript API Reference](https://docs.tavily.com/sdk/reference/javascript).
 
 # Tavily Crawl (Open-Access Beta)
@@ -98,6 +111,10 @@ for (let result of response.results) {
 }
 ```
 
+### Including credit usage data
+
+Just like the other endpoints, `tvly.crawl` accepts `includeUsage?: boolean` (default `false`). Enabling it forwards `include_usage: true` to the Tavily API so the response can surface a `usage` object describing crawl credits. Credit usage may stay at `0` until the crawl reaches endpoint-specific thresholds.
+
 # Tavily Map (Open-Access Beta)
 
 Map lets you discover and visualize the structure of a website starting from a base URL.
@@ -129,6 +146,10 @@ for (let url of response.results) {
   console.log(`URl: ${url}`);
 }
 ```
+
+### Including credit usage data
+
+The map endpoint also supports `includeUsage` (default `false`). When you enable it, the SDK sends `include_usage: true` and the response may include a `usage` object with credit consumption details. Credit usage values can remain at `0` until the API determines that a reporting threshold has been exceeded, which may vary by endpoint.
 
 > To learn more about the different parameters, head to our [JavaScript API Reference](https://docs.tavily.com/sdk/reference/javascript).
 

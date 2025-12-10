@@ -26,6 +26,7 @@ export function _map(
       allowExternal,
       instructions,
       timeout,
+      includeUsage,
       ...kwargs
     } = options;
 
@@ -46,6 +47,7 @@ export function _map(
           allow_external: allowExternal,
           instructions,
           timeout,
+          include_usage: includeUsage,
           ...kwargs,
         },
         apiKey,
@@ -59,6 +61,7 @@ export function _map(
         baseUrl: response.data.base_url,
         results: response.data.results,
         requestId: response.data.request_id,
+        ...(response.data.usage !== undefined && { usage: response.data.usage }),
       };
     } catch (err) {
       if (err instanceof AxiosError) {

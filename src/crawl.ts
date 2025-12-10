@@ -30,6 +30,7 @@ export function _crawl(
       format,
       timeout,
       includeFavicon,
+      includeUsage,
       ...kwargs
     } = options;
 
@@ -54,6 +55,7 @@ export function _crawl(
           format,
           timeout,
           include_favicon: includeFavicon,
+          include_usage: includeUsage,
           ...kwargs,
         },
         apiKey,
@@ -74,6 +76,7 @@ export function _crawl(
           };
         }),
         requestId: response.data.request_id,
+        ...(response.data.usage !== undefined && { usage: response.data.usage }),
       };
     } catch (err) {
       if (err instanceof AxiosError) {

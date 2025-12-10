@@ -15,7 +15,15 @@ export function _extract(
     urls: Array<string>,
     options: Partial<TavilyExtractOptions> = {}
   ) {
-    const { includeImages, extractDepth, format, timeout, includeFavicon, ...kwargs } = options;
+    const {
+      includeImages,
+      extractDepth,
+      format,
+      timeout,
+      includeFavicon,
+      includeUsage,
+      ...kwargs
+    } = options;
 
     const requestTimeout = timeout ?? 30; // Default to 30s
 
@@ -29,6 +37,7 @@ export function _extract(
           format,
           include_favicon: includeFavicon,
           timeout, // Add timeout to the payload
+          include_usage: includeUsage,
           ...kwargs,
         },
         apiKey,
@@ -54,6 +63,7 @@ export function _extract(
           };
         }),
         requestId: response.data.request_id,
+        ...(response.data.usage !== undefined && { usage: response.data.usage }),
       };
     } catch (err) {
       if (err instanceof AxiosError) {

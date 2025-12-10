@@ -91,12 +91,18 @@ export type TavilySearchOptions = {
   autoParameters?: boolean;
   timeout?: number;
   includeFavicon?: boolean;
+  includeUsage?: boolean;
   [key: string]: any;
 };
 
 type TavilyImage = {
   url: string;
   description?: string;
+};
+
+export type TavilyUsage = {
+  credits?: number;
+  [key: string]: any;
 };
 
 type TavilySearchResult = {
@@ -118,6 +124,7 @@ export type TavilySearchResponse = {
   autoParameters?: Partial<TavilySearchOptions>;
   favicon?: string;
   requestId: string;
+  usage?: TavilyUsage;
 };
 
 export type TavilyExtractOptions = {
@@ -126,6 +133,7 @@ export type TavilyExtractOptions = {
   format?: "markdown" | "text";
   timeout?: number;
   includeFavicon?: boolean;
+  includeUsage?: boolean;
   [key: string]: any;
 };
 
@@ -146,6 +154,7 @@ export type TavilyExtractResponse = {
   failedResults: Array<TavilyExtractFailedResult>;
   responseTime: number;
   requestId: string;
+  usage?: TavilyUsage;
 };
 
 export type TavilyCrawlOptions = {
@@ -163,6 +172,7 @@ export type TavilyCrawlOptions = {
   format?: "markdown" | "text";
   timeout?: number;
   includeFavicon?: boolean;
+  includeUsage?: boolean;
   [key: string]: any;
 };
 
@@ -176,6 +186,7 @@ export type TavilyCrawlResponse = {
     favicon?: string;
   }>;
   requestId: string;
+  usage?: TavilyUsage;
 };
 
 export type TavilyMapOptions = {
@@ -189,6 +200,7 @@ export type TavilyMapOptions = {
   allowExternal?: boolean;
   instructions?: string;
   timeout?: number;
+  includeUsage?: boolean;
   [key: string]: any;
 };
 
@@ -197,6 +209,7 @@ export type TavilyMapResponse = {
   baseUrl: string;
   results: string[];
   requestId: string;
+  usage?: TavilyUsage;
 };
 
 export type TavilyResearchOptions = {
