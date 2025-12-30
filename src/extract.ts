@@ -39,6 +39,7 @@ export function _extract(requestConfig: TavilyRequestConfig): TavilyExtractFunct
         results: response.data.results.map((result: any) => {
           return {
             url: result.url,
+            title: result.title,
             rawContent: result.raw_content,
             images: result.images,
             favicon: result.favicon,
