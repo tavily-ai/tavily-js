@@ -144,6 +144,7 @@ export type TavilyExtractOptions = {
 
 type TavilyExtractResult = {
   url: string;
+  title: string | null;
   rawContent: string;
   images?: Array<string>;
   favicon?: string;
