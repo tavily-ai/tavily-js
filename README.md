@@ -67,7 +67,7 @@ for (let result of response.results) {
 
 > To learn more about the different parameters, head to our [JavaScript API Reference](https://docs.tavily.com/sdk/reference/javascript).
 
-# Tavily Crawl (Open-Access Beta)
+# Tavily Crawl
 
 Tavily Crawl is an agent‐first site explorer that leverages breadth‐first crawling to navigate websites. It uses natural-language goals to intelligently uncover deeply buried “needle-in-a-haystack” information or perform high-volume data retrieval across an entire site.
 
@@ -98,7 +98,7 @@ for (let result of response.results) {
 }
 ```
 
-# Tavily Map (Open-Access Beta)
+# Tavily Map
 
 Map lets you discover and visualize the structure of a website starting from a base URL.
 
