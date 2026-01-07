@@ -19,15 +19,16 @@ export async function post(
   timeout?: number,
   responseType?: AxiosRequestConfig['responseType']
 ): Promise<AxiosResponse> {
-  const { apiKey, proxies, apiBaseURL, clientSource } = requestConfig;
+  const { apiKey, proxies, apiBaseURL, clientSource, projectId } = requestConfig;
   const requestTimeout = endpoint === "research" ? timeout : timeout ?? 60; // Research endpoint has no default timeout
 
   const url = `${apiBaseURL || BASE_URL}/${endpoint}`;
-  const headers = {
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${apiKey}`,
     "X-Client-Source": clientSource || "tavily-js",
   };
+  if (projectId) headers["X-Project-ID"] = projectId;
 
   const config: AxiosRequestConfig = { headers };
 
@@ -58,13 +59,14 @@ export async function get(
   requestConfig: TavilyRequestConfig,
   timeout?: number
 ): Promise<AxiosResponse> {
-  const { apiKey, proxies, apiBaseURL, clientSource } = requestConfig;
+  const { apiKey, proxies, apiBaseURL, clientSource, projectId } = requestConfig;
   const url = `${apiBaseURL || BASE_URL}/${endpoint}`;
-  const headers = {
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${apiKey}`,
     "X-Client-Source": clientSource || "tavily-js",
   };
+  if (projectId) headers["X-Project-ID"] = projectId;
 
   const requestTimeout = endpoint.includes("research") ? timeout : timeout ?? 60; // Research endpoint has no default timeout
   const timeoutInMillis = requestTimeout ? requestTimeout * 1000 : undefined;
