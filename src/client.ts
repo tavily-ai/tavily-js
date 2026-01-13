@@ -30,6 +30,7 @@ export function tavily(options?: TavilyClientOptions): TavilyClient {
     proxies,
     apiBaseURL: options?.apiBaseURL,
     clientSource: options?.clientSource,
+    projectId: options?.projectId || process.env.TAVILY_PROJECT,
   };
 
   return {

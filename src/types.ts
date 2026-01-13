@@ -70,6 +70,7 @@ export type TavilyClientOptions = {
   proxies?: TavilyProxyOptions;
   apiBaseURL?: string;
   clientSource?: string;
+  projectId?: string;
 };
 
 export type TavilyRequestConfig = {
@@ -77,6 +78,7 @@ export type TavilyRequestConfig = {
   proxies?: TavilyProxyOptions;
   apiBaseURL?: string;
   clientSource?: string;
+  projectId?: string;
 };
 
 export type TavilySearchOptions = {
