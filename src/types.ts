@@ -88,7 +88,7 @@ export type TavilySearchOptions = {
   maxResults?: number;
   includeImages?: boolean;
   includeImageDescriptions?: boolean;
-  includeAnswer?: boolean;
+  includeAnswer?: false | "basic" | "advanced";
   includeRawContent?: false | "markdown" | "text";
   includeDomains?: string[];
   excludeDomains?: string[];
