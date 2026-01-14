@@ -1,6 +1,6 @@
 {
   "name": "@tavily/core",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "Official JavaScript library for Tavily.",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -17,7 +17,8 @@
     "url": "https://github.com/tavily-ai/tavily-js.git"
   },
   "scripts": {
-    "build": "tsup"
+    "build": "tsup",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [
     "search",
