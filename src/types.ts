@@ -102,6 +102,7 @@ export type TavilySearchOptions = {
   timeout?: number;
   includeFavicon?: boolean;
   includeUsage?: boolean;
+  exactMatch?: boolean;
   [key: string]: any;
 };
 

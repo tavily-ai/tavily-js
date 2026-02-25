@@ -39,6 +39,7 @@ export function _search(requestConfig: TavilyRequestConfig): TavilySearchFuncton
       timeout,
       includeFavicon,
       includeUsage,
+      exactMatch,
       ...kwargs
     } = options;
 
@@ -67,6 +68,7 @@ export function _search(requestConfig: TavilyRequestConfig): TavilySearchFuncton
           auto_parameters: autoParameters,
           include_favicon: includeFavicon,
           include_usage: includeUsage,
+          exact_match: exactMatch,
           ...kwargs,
         },
         requestConfig,
