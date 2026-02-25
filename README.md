@@ -27,6 +27,10 @@ const response = await tvly.search("Who is Leo Messi?");
 
 // Step 3. That's it! You've done a Tavily Search!
 console.log(response);
+
+// Step 4. Use exactMatch to only return results containing the exact phrase(s) inside quotes
+const exactResponse = await tvly.search('"John Smith" CEO Acme Corp', { exactMatch: true });
+console.log(exactResponse);
 ```
 
 > To learn more about the different parameters, head to our [JavaScript API Reference](https://docs.tavily.com/sdk/reference/javascript).
