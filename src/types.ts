@@ -71,6 +71,9 @@ export type TavilyClientOptions = {
   apiBaseURL?: string;
   clientSource?: string;
   projectId?: string;
+  sessionId?: string;
+  humanId?: string;
+  clientName?: string;
 };
 
 export type TavilyRequestConfig = {
@@ -79,6 +82,9 @@ export type TavilyRequestConfig = {
   apiBaseURL?: string;
   clientSource?: string;
   projectId?: string;
+  sessionId?: string;
+  humanId?: string;
+  clientName?: string;
 };
 
 export type TavilySearchOptions = {
@@ -103,6 +109,9 @@ export type TavilySearchOptions = {
   includeFavicon?: boolean;
   includeUsage?: boolean;
   exactMatch?: boolean;
+  sessionId?: string;
+  humanId?: string;
+  clientName?: string;
   [key: string]: any;
 };
 
@@ -142,6 +151,9 @@ export type TavilyExtractOptions = {
   includeUsage?: boolean;
   query?: string;
   chunksPerSource?: number;
+  sessionId?: string;
+  humanId?: string;
+  clientName?: string;
   [key: string]: any;
 };
 
@@ -183,6 +195,9 @@ export type TavilyCrawlOptions = {
   includeFavicon?: boolean;
   includeUsage?: boolean;
   chunksPerSource?: number;
+  sessionId?: string;
+  humanId?: string;
+  clientName?: string;
   [key: string]: any;
 };
 
@@ -211,6 +226,9 @@ export type TavilyMapOptions = {
   instructions?: string;
   timeout?: number;
   includeUsage?: boolean;
+  sessionId?: string;
+  humanId?: string;
+  clientName?: string;
   [key: string]: any;
 };
 
@@ -228,6 +246,9 @@ export type TavilyResearchOptions = {
   stream?: boolean;
   citationFormat?: "numbered" | "mla" | "apa" | "chicago";
   timeout?: number;
+  sessionId?: string;
+  humanId?: string;
+  clientName?: string;
   [key: string]: any;
 };
 

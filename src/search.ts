@@ -40,10 +40,19 @@ export function _search(requestConfig: TavilyRequestConfig): TavilySearchFuncton
       includeFavicon,
       includeUsage,
       exactMatch,
+      sessionId,
+      humanId,
+      clientName,
       ...kwargs
     } = options;
 
     const requestTimeout = timeout ?? 60; // Default to 60s
+    const callConfig: TavilyRequestConfig = {
+      ...requestConfig,
+      ...(sessionId !== undefined && { sessionId }),
+      ...(humanId !== undefined && { humanId }),
+      ...(clientName !== undefined && { clientName }),
+    };
 
     try {
       const response = await post(
@@ -71,7 +80,7 @@ export function _search(requestConfig: TavilyRequestConfig): TavilySearchFuncton
           exact_match: exactMatch,
           ...kwargs,
         },
-        requestConfig,
+        callConfig,
         requestTimeout
       );
 

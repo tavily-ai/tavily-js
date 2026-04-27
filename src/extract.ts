@@ -11,9 +11,15 @@ export function _extract(requestConfig: TavilyRequestConfig): TavilyExtractFunct
     urls: Array<string>,
     options: Partial<TavilyExtractOptions> = {}
   ) {
-    const { includeImages, extractDepth, format, timeout, includeFavicon, includeUsage, query, chunksPerSource, ...kwargs } = options;
+    const { includeImages, extractDepth, format, timeout, includeFavicon, includeUsage, query, chunksPerSource, sessionId, humanId, clientName, ...kwargs } = options;
 
     const requestTimeout = timeout ?? 30; // Default to 30s
+    const callConfig: TavilyRequestConfig = {
+      ...requestConfig,
+      ...(sessionId !== undefined && { sessionId }),
+      ...(humanId !== undefined && { humanId }),
+      ...(clientName !== undefined && { clientName }),
+    };
 
     try {
       const response = await post(
@@ -30,7 +36,7 @@ export function _extract(requestConfig: TavilyRequestConfig): TavilyExtractFunct
           chunks_per_source: chunksPerSource,
           ...kwargs,
         },
-        requestConfig,
+        callConfig,
         requestTimeout
       );
 

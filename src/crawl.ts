@@ -28,10 +28,19 @@ export function _crawl(requestConfig: TavilyRequestConfig): TavilyCrawlFunction 
       includeFavicon,
       includeUsage,
       chunksPerSource,
+      sessionId,
+      humanId,
+      clientName,
       ...kwargs
     } = options;
 
     const requestTimeout = timeout ?? 150; // Default to 150s
+    const callConfig: TavilyRequestConfig = {
+      ...requestConfig,
+      ...(sessionId !== undefined && { sessionId }),
+      ...(humanId !== undefined && { humanId }),
+      ...(clientName !== undefined && { clientName }),
+    };
 
     try {
       const response = await post(
@@ -56,7 +65,7 @@ export function _crawl(requestConfig: TavilyRequestConfig): TavilyCrawlFunction 
           chunks_per_source: chunksPerSource,
           ...kwargs,
         },
-        requestConfig,
+        callConfig,
         requestTimeout
       );
 

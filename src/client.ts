@@ -31,6 +31,9 @@ export function tavily(options?: TavilyClientOptions): TavilyClient {
     apiBaseURL: options?.apiBaseURL,
     clientSource: options?.clientSource,
     projectId: options?.projectId || process.env.TAVILY_PROJECT,
+    sessionId: options?.sessionId,
+    humanId: options?.humanId,
+    clientName: options?.clientName,
   };
 
   return {

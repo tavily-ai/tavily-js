@@ -206,6 +206,27 @@ for await (const chunk of result as AsyncGenerator<Buffer, void, unknown>) {
 
 If you want to use either client with specified HTTP or HTTPS proxies, you can do so by passing the proxies parameter as a dictionary in the format `{ http?: string, https?: string }`, where each key is optional, or by setting the `TAVILY_HTTP_PROXY` or `TAVILY_HTTPS_PROXY` environment variables.
 
+## Session & User Tracking
+
+`sessionId`, `humanId`, and `clientName` are optional identifiers that help attribute requests to a logical session, an end user, and a named client. All three are sent as HTTP headers (`X-Session-Id`, `X-Human-Id`, `X-Client-Name`) and are never persisted in raw form — `humanId` is hashed server-side.
+
+Set them once at client init, or per-call (per-call wins):
+
+```javascript
+// Client-level — applied to every request
+const client = tavily({
+  apiKey: "tvly-YOUR_API_KEY",
+  sessionId: "my-session-123",
+  humanId: "internal-user-id-42",
+  clientName: "my-app",
+});
+
+// Per-call override
+await client.search("hello", { sessionId: "ad-hoc-session" });
+```
+
+All three are opt-in. Leave them unset and the SDK sends nothing — behavior is identical to earlier versions.
+
 ## Cost
 
 Head to the [API Credits Overview](https://docs.tavily.com/guides/api-credits) in our documentation to learn more about how many API Credits each request costs.
