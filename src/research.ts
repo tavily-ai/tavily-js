@@ -15,8 +15,15 @@ export function _research(requestConfig: TavilyRequestConfig): TavilyResearchFun
     input: string,
     options: Partial<TavilyResearchOptions> = {}
   ) {
-    const { model, outputSchema, stream, citationFormat, timeout, ...kwargs } =
+    const { model, outputSchema, stream, citationFormat, timeout, sessionId, humanId, clientName, ...kwargs } =
       options;
+
+    const callConfig: TavilyRequestConfig = {
+      ...requestConfig,
+      ...(sessionId !== undefined && { sessionId }),
+      ...(humanId !== undefined && { humanId }),
+      ...(clientName !== undefined && { clientName }),
+    };
 
     if (stream) {
       try {
@@ -30,7 +37,7 @@ export function _research(requestConfig: TavilyRequestConfig): TavilyResearchFun
             citation_format: citationFormat,
             ...kwargs,
           },
-          requestConfig,
+          callConfig,
           timeout,
           "stream"
         );
@@ -80,7 +87,7 @@ export function _research(requestConfig: TavilyRequestConfig): TavilyResearchFun
             citation_format: citationFormat,
             ...kwargs,
           },
-          requestConfig,
+          callConfig,
           timeout
         );
 

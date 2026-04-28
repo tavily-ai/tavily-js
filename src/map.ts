@@ -23,10 +23,19 @@ export function _map(requestConfig: TavilyRequestConfig): TavilyMapFunction {
       instructions,
       timeout,
       includeUsage,
+      sessionId,
+      humanId,
+      clientName,
       ...kwargs
     } = options;
 
     const requestTimeout = timeout ?? 150; // Default to 150s
+    const callConfig: TavilyRequestConfig = {
+      ...requestConfig,
+      ...(sessionId !== undefined && { sessionId }),
+      ...(humanId !== undefined && { humanId }),
+      ...(clientName !== undefined && { clientName }),
+    };
 
     try {
       const response = await post(
@@ -46,7 +55,7 @@ export function _map(requestConfig: TavilyRequestConfig): TavilyMapFunction {
           include_usage: includeUsage,
           ...kwargs,
         },
-        requestConfig,
+        callConfig,
         requestTimeout
       );
 
