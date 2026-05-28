@@ -43,6 +43,35 @@ const response = await tvly.search('"John Smith" CEO Acme Corp', {
 console.log(response);
 ```
 
+### Keyless mode
+
+You can try Tavily without an API key. When `apiKey` is omitted (and the
+`TAVILY_API_KEY` environment variable is not set), the client runs in
+**keyless mode**: `search` and `extract` are available with a shared rate
+limit, and the other methods throw an error directing you to provide a key.
+
+```javascript
+const { tavily, TavilyKeylessLimitError } = require("@tavily/core");
+
+// No apiKey — keyless mode
+const tvly = tavily();
+
+try {
+  const response = await tvly.search("Who is Leo Messi?");
+  console.log(response);
+} catch (err) {
+  if (err instanceof TavilyKeylessLimitError) {
+    // Rate-limit cap hit. Inspect structured fields to decide what to do next.
+    console.log("cap:", err.capType);
+    console.log("retry after:", err.retryAfter);
+    console.log("bonus eligible:", err.bonusEligible);
+    console.log("continuation options:", err.continuationPaths);
+  } else {
+    throw err;
+  }
+}
+```
+
 > To learn more about the different parameters, head to our [JavaScript API Reference](https://docs.tavily.com/sdk/reference/javascript).
 
 # Tavily Extract

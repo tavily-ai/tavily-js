@@ -2,6 +2,10 @@ import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import { encodingForModel, TiktokenModel } from "js-tiktoken";
 import { TavilyRequestConfig } from "./types";
 import { HttpsProxyAgent } from "https-proxy-agent";
+import {
+  isKeylessLimitEnvelope,
+  keylessLimitErrorFromEnvelope,
+} from "./errors";
 
 const BASE_URL = "https://api.tavily.com";
 const DEFAULT_MODEL_ENCODING = "gpt-3.5-turbo";
@@ -12,6 +16,31 @@ type TavilyErrorData = {
   detail: { error: string };
 };
 
+function buildHeaders(requestConfig: TavilyRequestConfig): Record<string, string> {
+  const { apiKey, clientSource, projectId, sessionId, humanId, clientName } =
+    requestConfig;
+  const isKeyless = !apiKey;
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (isKeyless) {
+    headers["X-Tavily-Access-Mode"] = "keyless";
+    headers["X-Client-Source"] = "tavily-js-keyless";
+  } else {
+    headers["Authorization"] = `Bearer ${apiKey}`;
+    headers["X-Client-Source"] = clientSource || "tavily-js";
+  }
+
+  if (projectId) headers["X-Project-ID"] = projectId;
+  if (sessionId) headers["X-Session-Id"] = sessionId;
+  if (humanId) headers["X-Human-Id"] = humanId;
+  if (clientName) headers["X-Client-Name"] = clientName;
+
+  return headers;
+}
+
 export async function post(
   endpoint: string,
   body: any,
@@ -19,19 +48,11 @@ export async function post(
   timeout?: number,
   responseType?: AxiosRequestConfig['responseType']
 ): Promise<AxiosResponse> {
-  const { apiKey, proxies, apiBaseURL, clientSource, projectId, sessionId, humanId, clientName } = requestConfig;
+  const { proxies, apiBaseURL } = requestConfig;
   const requestTimeout = endpoint === "research" ? timeout : timeout ?? 60; // Research endpoint has no default timeout
 
   const url = `${apiBaseURL || BASE_URL}/${endpoint}`;
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${apiKey}`,
-    "X-Client-Source": clientSource || "tavily-js",
-  };
-  if (projectId) headers["X-Project-ID"] = projectId;
-  if (sessionId) headers["X-Session-Id"] = sessionId;
-  if (humanId) headers["X-Human-Id"] = humanId;
-  if (clientName) headers["X-Client-Name"] = clientName;
+  const headers = buildHeaders(requestConfig);
 
   const config: AxiosRequestConfig = { headers };
 
@@ -62,17 +83,9 @@ export async function get(
   requestConfig: TavilyRequestConfig,
   timeout?: number
 ): Promise<AxiosResponse> {
-  const { apiKey, proxies, apiBaseURL, clientSource, projectId, sessionId, humanId, clientName } = requestConfig;
+  const { proxies, apiBaseURL } = requestConfig;
   const url = `${apiBaseURL || BASE_URL}/${endpoint}`;
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${apiKey}`,
-    "X-Client-Source": clientSource || "tavily-js",
-  };
-  if (projectId) headers["X-Project-ID"] = projectId;
-  if (sessionId) headers["X-Session-Id"] = sessionId;
-  if (humanId) headers["X-Human-Id"] = humanId;
-  if (clientName) headers["X-Client-Name"] = clientName;
+  const headers = buildHeaders(requestConfig);
 
   const requestTimeout = endpoint.includes("research") ? timeout : timeout ?? 60; // Research endpoint has no default timeout
   const timeoutInMillis = requestTimeout ? requestTimeout * 1000 : undefined;
@@ -117,6 +130,11 @@ export function getMaxTokensFromList(
 
 export function handleRequestError(res: AxiosResponse): never {
   const status = res.status;
+
+  if (isKeylessLimitEnvelope(res.data)) {
+    throw keylessLimitErrorFromEnvelope(res.data);
+  }
+
   const message = (res.data as TavilyErrorData)?.detail?.error;
 
   if (!message) {
