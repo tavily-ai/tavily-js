@@ -5,6 +5,14 @@ import { _crawl } from "./crawl";
 import { _map } from "./map";
 import { _research, _getResearch } from "./research";
 
+const KEYLESS_UNSUPPORTED_MESSAGE =
+  "Keyless mode only supports search and extract; provide an API key to use this method.";
+function makeKeylessUnsupported(methodName: string): (...args: any[]) => never {
+  return (..._args: any[]): never => {
+    throw new Error(`${methodName}: ${KEYLESS_UNSUPPORTED_MESSAGE}`);
+  };
+}
+
 export function tavily(options?: TavilyClientOptions): TavilyClient {
   const apiKey = options?.apiKey || process.env.TAVILY_API_KEY;
   const proxies = (() => {
@@ -19,14 +27,8 @@ export function tavily(options?: TavilyClientOptions): TavilyClient {
     return Object.keys(result).length > 0 ? result : undefined;
   })();
 
-  if (!apiKey) {
-    throw new Error(
-      "No API key provided. Please provide the api_key attribute or set the TAVILY_API_KEY environment variable."
-    );
-  }
-
   const requestConfig: TavilyRequestConfig = {
-    apiKey,
+    ...(apiKey ? { apiKey } : {}),
     proxies,
     apiBaseURL: options?.apiBaseURL,
     clientSource: options?.clientSource,
@@ -35,6 +37,23 @@ export function tavily(options?: TavilyClientOptions): TavilyClient {
     humanId: options?.humanId,
     clientName: options?.clientName,
   };
+
+  if (!apiKey) {
+    return {
+      search: _search(requestConfig),
+      extract: _extract(requestConfig),
+      searchQNA: makeKeylessUnsupported("searchQNA") as TavilyClient["searchQNA"],
+      searchContext: makeKeylessUnsupported(
+        "searchContext"
+      ) as TavilyClient["searchContext"],
+      crawl: makeKeylessUnsupported("crawl") as TavilyClient["crawl"],
+      map: makeKeylessUnsupported("map") as TavilyClient["map"],
+      research: makeKeylessUnsupported("research") as TavilyClient["research"],
+      getResearch: makeKeylessUnsupported(
+        "getResearch"
+      ) as TavilyClient["getResearch"],
+    };
+  }
 
   return {
     search: _search(requestConfig),

@@ -77,7 +77,7 @@ export type TavilyClientOptions = {
 };
 
 export type TavilyRequestConfig = {
-  apiKey: string;
+  apiKey?: string;
   proxies?: TavilyProxyOptions;
   apiBaseURL?: string;
   clientSource?: string;
