@@ -4,3 +4,6 @@
 
 .DS_Store
 .env
+
+# npm pack artifacts
+*.tgz
