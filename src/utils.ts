@@ -34,7 +34,7 @@ function buildHeaders(requestConfig: TavilyRequestConfig): Record<string, string
   }
 
   if (projectId) headers["X-Project-ID"] = projectId;
-  if (orgId) headers["x-tavily-orgid"] = orgId;
+  if (orgId) headers["X-Tavily-Orgid"] = orgId;
   if (sessionId) headers["X-Session-Id"] = sessionId;
   if (humanId) headers["X-Human-Id"] = humanId;
   if (clientName) headers["X-Client-Name"] = clientName;
