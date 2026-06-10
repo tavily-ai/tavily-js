@@ -71,6 +71,7 @@ export type TavilyClientOptions = {
   apiBaseURL?: string;
   clientSource?: string;
   projectId?: string;
+  orgId?: string;
   sessionId?: string;
   humanId?: string;
   clientName?: string;
@@ -82,6 +83,7 @@ export type TavilyRequestConfig = {
   apiBaseURL?: string;
   clientSource?: string;
   projectId?: string;
+  orgId?: string;
   sessionId?: string;
   humanId?: string;
   clientName?: string;

@@ -17,7 +17,7 @@ type TavilyErrorData = {
 };
 
 function buildHeaders(requestConfig: TavilyRequestConfig): Record<string, string> {
-  const { apiKey, clientSource, projectId, sessionId, humanId, clientName } =
+  const { apiKey, clientSource, projectId, orgId, sessionId, humanId, clientName } =
     requestConfig;
   const isKeyless = !apiKey;
 
@@ -34,6 +34,7 @@ function buildHeaders(requestConfig: TavilyRequestConfig): Record<string, string
   }
 
   if (projectId) headers["X-Project-ID"] = projectId;
+  if (orgId) headers["x-tavily-orgid"] = orgId;
   if (sessionId) headers["X-Session-Id"] = sessionId;
   if (humanId) headers["X-Human-Id"] = humanId;
   if (clientName) headers["X-Client-Name"] = clientName;
