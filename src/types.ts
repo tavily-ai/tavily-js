@@ -130,6 +130,7 @@ type TavilySearchResult = {
   score: number;
   publishedDate: string;
   favicon?: string;
+  id: string;
 };
 
 export type TavilySearchResponse = {
