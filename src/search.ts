@@ -102,6 +102,7 @@ export function _search(requestConfig: TavilyRequestConfig): TavilySearchFuncton
             score: result.score,
             publishedDate: result.published_date,
             favicon: result.favicon,
+            id: result.id,
           };
         }),
         answer: response.data.answer,
