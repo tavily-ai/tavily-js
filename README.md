@@ -43,22 +43,6 @@ const response = await tvly.search('"John Smith" CEO Acme Corp', {
 console.log(response);
 ```
 
-### Filtering results by language
-
-```javascript
-const { tavily } = require("@tavily/core");
-
-const tvly = tavily({ apiKey: "tvly-YOUR_API_KEY" });
-
-// language biases the search results towards the given language (ISO code or English name).
-// filterByLanguage: true additionally drops results that don't match it (requires language to be set).
-const response = await tvly.search("dernières nouvelles technologiques", {
-  language: "french",
-  filterByLanguage: true,
-});
-console.log(response);
-```
-
 ### Keyless mode
 
 You can try Tavily without an API key. When `apiKey` is omitted (and the
