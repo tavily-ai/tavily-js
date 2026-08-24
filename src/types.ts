@@ -111,6 +111,8 @@ export type TavilySearchOptions = {
   includeFavicon?: boolean;
   includeUsage?: boolean;
   exactMatch?: boolean;
+  language?: string;
+  filterByLanguage?: boolean;
   sessionId?: string;
   humanId?: string;
   clientName?: string;
