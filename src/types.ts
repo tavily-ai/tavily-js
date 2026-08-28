@@ -106,6 +106,7 @@ export type TavilySearchOptions = {
   country?: string;
   startDate?: string;
   endDate?: string;
+  maxHours?: number;
   autoParameters?: boolean;
   timeout?: number;
   includeFavicon?: boolean;
