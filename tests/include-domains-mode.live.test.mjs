@@ -33,7 +33,8 @@ test("search with includeDomainsMode filter restricts to listed domains", { skip
   });
   assert.ok(Array.isArray(response.results));
   for (const result of response.results) {
-    assert.ok(result.url.includes("linkedin.com"));
+    const host = new URL(result.url).hostname;
+    assert.ok(host === "linkedin.com" || host.endsWith(".linkedin.com"));
   }
 });
 
