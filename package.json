@@ -21,6 +21,7 @@
   },
   "scripts": {
     "build": "tsup",
+    "test:live": "npm run build && node --test tests/*.live.test.mjs",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
