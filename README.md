@@ -242,14 +242,12 @@ Below is a code snippet that demonstrates how to submit feedback. Each step and 
 ```javascript
 const { tavily } = require("@tavily/core");
 
-// Step 1. Instantiating your Tavily client
 const tvly = tavily({ apiKey: "tvly-YOUR_API_KEY" });
 
-// Step 2. Running a search
 const response = await tvly.search("Latest AI developments");
 
-// Step 3. Submitting feedback on the search request
-const feedback = await tvly.feedback({
+// An agent scores its own search call
+await tvly.feedback({
   requestId: response.requestId,
   agentScore: 0.9,
   urlsScores: response.results.map((result) => ({
@@ -257,9 +255,6 @@ const feedback = await tvly.feedback({
     agentScore: 0.9,
   })),
 });
-
-// Step 4. Printing the feedback confirmation
-console.log(`Feedback submitted: ${feedback.feedbackId}`);
 ```
 
 > To learn more about the different parameters, head to our [JavaScript API Reference](https://docs.tavily.com/sdk/reference/javascript).
