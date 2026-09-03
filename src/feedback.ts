@@ -29,7 +29,7 @@ export function _feedback(requestConfig: TavilyRequestConfig): TavilyFeedbackFun
       ...kwargs
     } = options;
 
-    const requestTimeout = timeout ?? 60; // Default to 60s
+    const requestTimeout = timeout ?? 10; // /feedback is a lightweight write (no search/crawl work), default to 10s
     const callConfig: TavilyRequestConfig = {
       ...requestConfig,
       ...(humanId !== undefined && { humanId }),
