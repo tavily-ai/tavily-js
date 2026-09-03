@@ -246,14 +246,14 @@ const tvly = tavily({ apiKey: "tvly-YOUR_API_KEY" });
 
 const response = await tvly.search("Latest AI developments");
 
-// An agent scores its own search call
+// An agent scores its own search call — honestly, per result, not one flat number
 await tvly.feedback({
   requestId: response.requestId,
-  agentScore: 0.9,
-  urlsScores: response.results.map((result) => ({
-    id: result.id,
-    agentScore: 0.9,
-  })),
+  agentScore: 0.7,
+  urlsScores: [
+    { id: response.results[0].id, agentScore: 0.9 },
+    { id: response.results[1].id, agentScore: 0.2, comment: "Outdated — reports on a 2023 event" },
+  ],
 });
 ```
 
