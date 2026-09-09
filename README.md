@@ -229,6 +229,36 @@ for await (const chunk of result as AsyncGenerator<Buffer, void, unknown>) {
 
 > To learn more about the different parameters, head to our [JavaScript API Reference](https://docs.tavily.com/sdk/reference/javascript).
 
+# Tavily Feedback
+
+Feedback lets you report on how useful a search request or session was, so Tavily can improve result quality over time.
+
+## Usage
+
+Below is a code snippet that demonstrates how to submit feedback. Each step and component of this code is explained in greater detail in the API Methods section below.
+
+### Scoring a search request
+
+```javascript
+const { tavily } = require("@tavily/core");
+
+const tvly = tavily({ apiKey: "tvly-YOUR_API_KEY" });
+
+const response = await tvly.search("Latest AI developments");
+
+// An agent scores its own search call — honestly, per result, not one flat number
+await tvly.feedback({
+  requestId: response.requestId,
+  agentScore: 0.7,
+  urlsScores: [
+    { id: response.results[0].id, agentScore: 0.9 },
+    { id: response.results[1].id, agentScore: 0.2, comment: "Outdated — reports on a 2023 event" },
+  ],
+});
+```
+
+> To learn more about the different parameters, head to our [JavaScript API Reference](https://docs.tavily.com/sdk/reference/javascript).
+
 # Additional Information
 
 ## Proxies

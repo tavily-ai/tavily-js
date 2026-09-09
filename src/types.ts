@@ -47,6 +47,10 @@ export type TavilyGetResearchFunction = (
   TavilyGetResearchResponse | TavilyGetResearchIncompleteStatusResponse
 >;
 
+export type TavilyFeedbackFunction = (
+  options: TavilyFeedbackOptions
+) => Promise<TavilyFeedbackResponse>;
+
 export type TavilyClient = {
   search: TavilySearchFuncton;
   /** @deprecated Use `search()` with `includeAnswer: true` instead */
@@ -58,6 +62,7 @@ export type TavilyClient = {
   map: TavilyMapFunction;
   research: TavilyResearchFunction;
   getResearch: TavilyGetResearchFunction;
+  feedback: TavilyFeedbackFunction;
 };
 
 export type TavilyProxyOptions = {
@@ -283,3 +288,40 @@ export type TavilyGetResearchIncompleteStatusResponse = Pick<
   TavilyGetResearchResponse,
   "requestId" | "status" | "responseTime"
 >;
+
+export type TavilyFeedbackLabeledScore = {
+  label: string;
+  value: number | string;
+};
+
+export type TavilyFeedbackUrlScore = {
+  id?: string;
+  url?: string;
+  agentScore?: number | string;
+  scores?: Array<TavilyFeedbackLabeledScore>;
+  comment?: string;
+};
+
+export type TavilyFeedbackOptions = {
+  sessionId?: string;
+  requestId?: string;
+  agentScore?: number | string;
+  humanScore?: number | string;
+  extraScores?: Array<TavilyFeedbackLabeledScore>;
+  comment?: string;
+  responseDelivered?: string;
+  usedUrls?: Array<string>;
+  usedIds?: Array<string>;
+  usedCitations?: Array<string>;
+  urlsScores?: Array<TavilyFeedbackUrlScore>;
+  timeout?: number;
+  humanId?: string;
+  clientName?: string;
+  [key: string]: any;
+};
+
+export type TavilyFeedbackResponse = {
+  success: boolean;
+  feedbackId: string;
+  responseTime: number;
+};
