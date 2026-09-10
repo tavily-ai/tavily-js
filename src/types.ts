@@ -139,6 +139,7 @@ type TavilySearchResult = {
   publishedDate: string;
   favicon?: string;
   id: string;
+  images?: Array<TavilyImage>;
 };
 
 export type TavilySearchResponse = {
