@@ -109,6 +109,17 @@ export function _search(requestConfig: TavilyRequestConfig): TavilySearchFuncton
             publishedDate: result.published_date,
             favicon: result.favicon,
             id: result.id,
+            images: (Array.isArray(result.images) ? result.images : [])
+              .map((image: any) => ({
+                url: typeof image === "string" ? image : image?.url,
+                description:
+                  typeof image?.description === "string"
+                    ? image.description
+                    : undefined,
+              }))
+              .filter(({ url }: { url: unknown }) =>
+                typeof url === "string" && url.trim().length > 0
+              ),
           };
         }),
         answer: response.data.answer,
