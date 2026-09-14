@@ -207,6 +207,17 @@ console.log(`Content: ${result.content}`);
 console.log(`Sources: ${result.sources.length} sources found`);
 ```
 
+### Research credit usage
+
+```javascript
+const { tavily } = require("@tavily/core");
+const tvly = tavily({ apiKey: "tvly-YOUR_API_KEY" });
+const result = await tvly.getResearch("YOUR_REQUEST_ID", { includeUsage: true });
+console.log(result.usage?.credits);
+```
+
+Usage is off by default. Some tasks have no usage data.
+
 ### Streaming research results
 
 ```javascript

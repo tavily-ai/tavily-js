@@ -2,6 +2,7 @@ import {
   TavilyResearchOptions,
   TavilyResearchFunction,
   TavilyGetResearchFunction,
+  TavilyGetResearchOptions,
   TavilyRequestConfig,
   TavilyGetResearchIncompleteStatusResponse,
   TavilyGetResearchResponse,
@@ -117,14 +118,26 @@ export function _research(requestConfig: TavilyRequestConfig): TavilyResearchFun
 }
 
 export function _getResearch(requestConfig: TavilyRequestConfig): TavilyGetResearchFunction {
-  return async function getResearch(requestId: string) {
+  return async function getResearch(
+    requestId: string,
+    options: TavilyGetResearchOptions = {}
+  ) {
+    const { includeUsage, sessionId, humanId, clientName, ...kwargs } = options;
+
     const requestTimeout = 60; // Default timeout for GET requests
+    const callConfig: TavilyRequestConfig = {
+      ...requestConfig,
+      ...(sessionId !== undefined && { sessionId }),
+      ...(humanId !== undefined && { humanId }),
+      ...(clientName !== undefined && { clientName }),
+    };
 
     try {
       const response = await get(
         `research/${requestId}`,
-        requestConfig,
-        requestTimeout
+        callConfig,
+        requestTimeout,
+        { include_usage: includeUsage, ...kwargs }
       );
       return response.data as
         | TavilyGetResearchResponse
