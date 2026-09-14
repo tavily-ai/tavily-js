@@ -276,10 +276,6 @@ export type TavilyResearchResponse = {
 
 export type TavilyGetResearchOptions = {
   includeUsage?: boolean;
-  sessionId?: string;
-  humanId?: string;
-  clientName?: string;
-  [key: string]: any;
 };
 
 export type TavilyGetResearchResponse = {

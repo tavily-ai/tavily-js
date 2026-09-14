@@ -122,22 +122,15 @@ export function _getResearch(requestConfig: TavilyRequestConfig): TavilyGetResea
     requestId: string,
     options: TavilyGetResearchOptions = {}
   ) {
-    const { includeUsage, sessionId, humanId, clientName, ...kwargs } = options;
+    const { includeUsage } = options;
 
     const requestTimeout = 60; // Default timeout for GET requests
-    const callConfig: TavilyRequestConfig = {
-      ...requestConfig,
-      ...(sessionId !== undefined && { sessionId }),
-      ...(humanId !== undefined && { humanId }),
-      ...(clientName !== undefined && { clientName }),
-    };
-
     try {
       const response = await get(
         `research/${requestId}`,
-        callConfig,
+        requestConfig,
         requestTimeout,
-        { include_usage: includeUsage, ...kwargs }
+        { include_usage: includeUsage }
       );
       return response.data as
         | TavilyGetResearchResponse
