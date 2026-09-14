@@ -42,7 +42,8 @@ export type TavilyResearchFunction = (
 ) => Promise<TavilyResearchResponse | AsyncGenerator<Buffer, void, unknown>>;
 
 export type TavilyGetResearchFunction = (
-  requestId: string
+  requestId: string,
+  options?: TavilyGetResearchOptions
 ) => Promise<
   TavilyGetResearchResponse | TavilyGetResearchIncompleteStatusResponse
 >;
@@ -273,6 +274,11 @@ export type TavilyResearchResponse = {
   responseTime: number;
 };
 
+export type TavilyGetResearchOptions = {
+  includeUsage?: boolean;
+  [key: string]: any;
+};
+
 export type TavilyGetResearchResponse = {
   requestId: string;
   createdAt: string;
@@ -283,11 +289,12 @@ export type TavilyGetResearchResponse = {
     url: string;
   }>;
   responseTime: number;
+  usage?: { credits?: number; [key: string]: unknown };
 };
 
 export type TavilyGetResearchIncompleteStatusResponse = Pick<
   TavilyGetResearchResponse,
-  "requestId" | "status" | "responseTime"
+  "requestId" | "status" | "responseTime" | "usage"
 >;
 
 export type TavilyFeedbackLabeledScore = {

@@ -2,9 +2,8 @@ import {
   TavilyResearchOptions,
   TavilyResearchFunction,
   TavilyGetResearchFunction,
+  TavilyGetResearchOptions,
   TavilyRequestConfig,
-  TavilyGetResearchIncompleteStatusResponse,
-  TavilyGetResearchResponse,
 } from "./types";
 import { post, get, handleRequestError, handleTimeoutError } from "./utils";
 import { AxiosError, AxiosResponse } from "axios";
@@ -117,18 +116,26 @@ export function _research(requestConfig: TavilyRequestConfig): TavilyResearchFun
 }
 
 export function _getResearch(requestConfig: TavilyRequestConfig): TavilyGetResearchFunction {
-  return async function getResearch(requestId: string) {
+  return async function getResearch(
+    requestId: string,
+    options: TavilyGetResearchOptions = {}
+  ) {
     const requestTimeout = 60; // Default timeout for GET requests
+    const { includeUsage, ...kwargs } = options;
 
     try {
       const response = await get(
-        `research/${requestId}`,
+        `research/${encodeURIComponent(requestId)}`,
         requestConfig,
-        requestTimeout
+        requestTimeout,
+        { include_usage: includeUsage, ...kwargs }
       );
-      return response.data as
-        | TavilyGetResearchResponse
-        | TavilyGetResearchIncompleteStatusResponse;
+      return {
+        ...response.data,
+        requestId: response.data.request_id,
+        createdAt: response.data.created_at,
+        responseTime: response.data.response_time,
+      };
     } catch (err) {
       if (err instanceof AxiosError) {
         if (err.code === "ECONNABORTED") {
