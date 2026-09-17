@@ -30,6 +30,7 @@ export function _search(requestConfig: TavilyRequestConfig): TavilySearchFuncton
       includeRawContent,
       includeDomains,
       excludeDomains,
+      includeDomainsMode,
       timeRange,
       chunksPerSource,
       country,
@@ -42,6 +43,8 @@ export function _search(requestConfig: TavilyRequestConfig): TavilySearchFuncton
       exactMatch,
       fetchTimeout,
       cacheFallback,
+      language,
+      filterByLanguage,
       sessionId,
       humanId,
       clientName,
@@ -71,6 +74,7 @@ export function _search(requestConfig: TavilyRequestConfig): TavilySearchFuncton
           include_raw_content: includeRawContent,
           include_domains: includeDomains,
           exclude_domains: excludeDomains,
+          include_domains_mode: includeDomainsMode,
           time_range: timeRange,
           chunks_per_source: chunksPerSource,
           country: country,
@@ -82,6 +86,8 @@ export function _search(requestConfig: TavilyRequestConfig): TavilySearchFuncton
           exact_match: exactMatch,
           fetch_timeout: fetchTimeout,
           cache_fallback: cacheFallback,
+          language: language,
+          filter_by_language: filterByLanguage,
           ...kwargs,
         },
         callConfig,
@@ -107,6 +113,17 @@ export function _search(requestConfig: TavilyRequestConfig): TavilySearchFuncton
             publishedDate: result.published_date,
             favicon: result.favicon,
             id: result.id,
+            images: (Array.isArray(result.images) ? result.images : [])
+              .map((image: any) => ({
+                url: typeof image === "string" ? image : image?.url,
+                description:
+                  typeof image?.description === "string"
+                    ? image.description
+                    : undefined,
+              }))
+              .filter(({ url }: { url: unknown }) =>
+                typeof url === "string" && url.trim().length > 0
+              ),
           };
         }),
         answer: response.data.answer,

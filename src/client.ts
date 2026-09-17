@@ -4,6 +4,7 @@ import { _extract } from "./extract";
 import { _crawl } from "./crawl";
 import { _map } from "./map";
 import { _research, _getResearch } from "./research";
+import { _feedback } from "./feedback";
 
 const KEYLESS_UNSUPPORTED_MESSAGE =
   "Keyless mode only supports search and extract; provide an API key to use this method.";
@@ -53,6 +54,7 @@ export function tavily(options?: TavilyClientOptions): TavilyClient {
       getResearch: makeKeylessUnsupported(
         "getResearch"
       ) as TavilyClient["getResearch"],
+      feedback: makeKeylessUnsupported("feedback") as TavilyClient["feedback"],
     };
   }
 
@@ -65,5 +67,6 @@ export function tavily(options?: TavilyClientOptions): TavilyClient {
     map: _map(requestConfig),
     research: _research(requestConfig),
     getResearch: _getResearch(requestConfig),
+    feedback: _feedback(requestConfig),
   };
 }
