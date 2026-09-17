@@ -118,6 +118,8 @@ export type TavilySearchOptions = {
   includeFavicon?: boolean;
   includeUsage?: boolean;
   exactMatch?: boolean;
+  fetchTimeout?: number;
+  cacheFallback?: boolean;
   language?: string;
   filterByLanguage?: boolean;
   sessionId?: string;
