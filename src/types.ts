@@ -42,10 +42,15 @@ export type TavilyResearchFunction = (
 ) => Promise<TavilyResearchResponse | AsyncGenerator<Buffer, void, unknown>>;
 
 export type TavilyGetResearchFunction = (
-  requestId: string
+  requestId: string,
+  options?: TavilyGetResearchOptions
 ) => Promise<
   TavilyGetResearchResponse | TavilyGetResearchIncompleteStatusResponse
 >;
+
+export type TavilyFeedbackFunction = (
+  options: TavilyFeedbackOptions
+) => Promise<TavilyFeedbackResponse>;
 
 export type TavilyClient = {
   search: TavilySearchFuncton;
@@ -58,6 +63,7 @@ export type TavilyClient = {
   map: TavilyMapFunction;
   research: TavilyResearchFunction;
   getResearch: TavilyGetResearchFunction;
+  feedback: TavilyFeedbackFunction;
 };
 
 export type TavilyProxyOptions = {
@@ -100,6 +106,7 @@ export type TavilySearchOptions = {
   includeRawContent?: false | "markdown" | "text";
   includeDomains?: string[];
   excludeDomains?: string[];
+  includeDomainsMode?: "restrict" | "prefer";
   maxTokens?: number;
   timeRange?: "year" | "month" | "week" | "day" | "y" | "m" | "w" | "d";
   chunksPerSource?: number;
@@ -112,6 +119,8 @@ export type TavilySearchOptions = {
   includeFavicon?: boolean;
   includeUsage?: boolean;
   exactMatch?: boolean;
+  fetchTimeout?: number;
+  cacheFallback?: boolean;
   language?: string;
   filterByLanguage?: boolean;
   sessionId?: string;
@@ -134,6 +143,7 @@ type TavilySearchResult = {
   publishedDate: string;
   favicon?: string;
   id: string;
+  images?: Array<TavilyImage>;
 };
 
 export type TavilySearchResponse = {
@@ -267,6 +277,10 @@ export type TavilyResearchResponse = {
   responseTime: number;
 };
 
+export type TavilyGetResearchOptions = {
+  includeUsage?: boolean;
+};
+
 export type TavilyGetResearchResponse = {
   requestId: string;
   createdAt: string;
@@ -277,9 +291,47 @@ export type TavilyGetResearchResponse = {
     url: string;
   }>;
   responseTime: number;
+  usage?: { credits?: number; [key: string]: unknown };
 };
 
 export type TavilyGetResearchIncompleteStatusResponse = Pick<
   TavilyGetResearchResponse,
-  "requestId" | "status" | "responseTime"
+  "requestId" | "status" | "responseTime" | "usage"
 >;
+
+export type TavilyFeedbackLabeledScore = {
+  label: string;
+  value: number | string;
+};
+
+export type TavilyFeedbackUrlScore = {
+  id?: string;
+  url?: string;
+  agentScore?: number | string;
+  scores?: Array<TavilyFeedbackLabeledScore>;
+  comment?: string;
+};
+
+export type TavilyFeedbackOptions = {
+  sessionId?: string;
+  requestId?: string;
+  agentScore?: number | string;
+  humanScore?: number | string;
+  extraScores?: Array<TavilyFeedbackLabeledScore>;
+  comment?: string;
+  responseDelivered?: string;
+  usedUrls?: Array<string>;
+  usedIds?: Array<string>;
+  usedCitations?: Array<string>;
+  urlsScores?: Array<TavilyFeedbackUrlScore>;
+  timeout?: number;
+  humanId?: string;
+  clientName?: string;
+  [key: string]: any;
+};
+
+export type TavilyFeedbackResponse = {
+  success: boolean;
+  feedbackId: string;
+  responseTime: number;
+};

@@ -82,7 +82,8 @@ export async function post(
 export async function get(
   endpoint: string,
   requestConfig: TavilyRequestConfig,
-  timeout?: number
+  timeout?: number,
+  params?: Record<string, unknown>
 ): Promise<AxiosResponse> {
   const { proxies, apiBaseURL } = requestConfig;
   const url = `${apiBaseURL || BASE_URL}/${endpoint}`;
@@ -91,7 +92,7 @@ export async function get(
   const requestTimeout = endpoint.includes("research") ? timeout : timeout ?? 60; // Research endpoint has no default timeout
   const timeoutInMillis = requestTimeout ? requestTimeout * 1000 : undefined;
 
-  const config: AxiosRequestConfig = { headers, timeout: timeoutInMillis };
+  const config: AxiosRequestConfig = { headers, timeout: timeoutInMillis, params };
   if (proxies) {
     if (proxies.http) {
       config.httpAgent = new HttpsProxyAgent(proxies.http);
