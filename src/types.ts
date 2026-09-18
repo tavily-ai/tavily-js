@@ -106,7 +106,7 @@ export type TavilySearchOptions = {
   includeRawContent?: false | "markdown" | "text";
   includeDomains?: string[];
   excludeDomains?: string[];
-  includeDomainsMode?: "filter" | "boost";
+  includeDomainsMode?: "restrict" | "prefer";
   maxTokens?: number;
   timeRange?: "year" | "month" | "week" | "day" | "y" | "m" | "w" | "d";
   chunksPerSource?: number;
