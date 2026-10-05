@@ -113,6 +113,8 @@ export type TavilySearchOptions = {
   country?: string;
   startDate?: string;
   endDate?: string;
+  maxAgeHours?: number;
+  /** @deprecated Use maxAgeHours. */
   maxHours?: number;
   autoParameters?: boolean;
   timeout?: number;
