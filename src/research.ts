@@ -69,6 +69,19 @@ export function _research(requestConfig: TavilyRequestConfig): TavilyResearchFun
             handleTimeoutError(timeout || 0);
           }
           if (err.response) {
+            // Axios also returns error bodies as streams in this mode.
+            if (err.response.data instanceof Readable) {
+              const chunks: Buffer[] = [];
+              for await (const chunk of err.response.data) {
+                chunks.push(Buffer.from(chunk));
+              }
+              const body = Buffer.concat(chunks).toString("utf8");
+              try {
+                err.response.data = JSON.parse(body);
+              } catch {
+                err.response.data = body;
+              }
+            }
             handleRequestError(err.response as AxiosResponse);
           }
         }
