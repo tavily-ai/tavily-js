@@ -1,3 +1,5 @@
+import type { SearchParameterValues } from "./parameters";
+
 export type TavilySearchFuncton = (
   query: string,
   options?: TavilySearchOptions
@@ -95,36 +97,11 @@ export type TavilyRequestConfig = {
   clientName?: string;
 };
 
-export type TavilySearchOptions = {
-  searchDepth?: "basic" | "advanced" | "fast" | "ultra-fast";
-  topic?: "general" | "news" | "finance";
-  days?: number;
-  maxResults?: number;
-  includeImages?: boolean;
-  includeImageDescriptions?: boolean;
-  includeAnswer?: boolean | "basic" | "advanced";
-  includeRawContent?: false | "markdown" | "text";
-  includeDomains?: string[];
-  excludeDomains?: string[];
-  includeDomainsMode?: "restrict" | "prefer";
+export type TavilySearchOptions = Partial<Omit<SearchParameterValues, "query">> & {
   maxTokens?: number;
-  timeRange?: "year" | "month" | "week" | "day" | "y" | "m" | "w" | "d";
-  chunksPerSource?: number;
-  country?: string;
-  startDate?: string;
-  endDate?: string;
-  maxAgeHours?: number;
   /** @deprecated Use maxAgeHours. */
   maxHours?: number;
-  autoParameters?: boolean;
   timeout?: number;
-  includeFavicon?: boolean;
-  includeUsage?: boolean;
-  exactMatch?: boolean;
-  fetchTimeout?: number;
-  cacheFallback?: boolean;
-  language?: string;
-  filterByLanguage?: boolean;
   sessionId?: string;
   humanId?: string;
   clientName?: string;

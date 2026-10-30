@@ -10,8 +10,34 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/index.mjs",
-      "require": "./dist/index.js"
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    },
+    "./parameters": {
+      "import": {
+        "types": "./dist/parameters.d.mts",
+        "default": "./dist/parameters.mjs"
+      },
+      "require": {
+        "types": "./dist/parameters.d.ts",
+        "default": "./dist/parameters.js"
+      }
+    },
+    "./agent-schemas": {
+      "import": {
+        "types": "./dist/agent-schemas.d.mts",
+        "default": "./dist/agent-schemas.mjs"
+      },
+      "require": {
+        "types": "./dist/agent-schemas.d.ts",
+        "default": "./dist/agent-schemas.js"
+      }
     }
   },
   "homepage": "https://tavily.com",
@@ -21,6 +47,8 @@
   },
   "scripts": {
     "build": "tsup",
+    "test": "npm run build && node --test tests/search.test.mjs",
+    "test:package": "npm run build && node --test tests/package.test.mjs",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -36,12 +64,21 @@
   "devDependencies": {
     "@types/node": "^22.7.4",
     "tsup": "^8.3.6",
-    "typescript": "^5.6.2"
+    "typescript": "^5.6.2",
+    "zod": "^4.6.7"
   },
   "dependencies": {
     "axios": "^1.7.7",
     "https-proxy-agent": "^7.0.6",
     "js-tiktoken": "^1.0.14"
+  },
+  "peerDependencies": {
+    "zod": "^4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "zod": {
+      "optional": true
+    }
   },
   "overrides": {
     "esbuild": "^0.25.0"
