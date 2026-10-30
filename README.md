@@ -74,6 +74,73 @@ try {
 
 > To learn more about the different parameters, head to our [JavaScript API Reference](https://docs.tavily.com/sdk/reference/javascript).
 
+## Shared Search schemas for integrations
+
+`@tavily/core/parameters` exports dependency-free `searchParameters` (individual
+JSON Schema field definitions), `searchAgentInputParams` (the approved selection
+and required/optional status), and `searchAgentInputJsonSchema` (Draft 2020-12).
+The field definitions also supply the SDK's named Search option types.
+
+`@tavily/core/agent-schemas` exports `searchAgentInputSchema`,
+`searchParameterSchemas`, and the `SearchAgentInput` type. This entry point
+requires **Zod 4 Classic** (`npm install zod@^4`). Zod is an optional peer and
+is not bundled or loaded by the normal client or the neutral parameters entry
+point. Zod 3 validators, including `zod/v3`, are not directly compatible.
+
+The approved Search input has required `query` and optional `searchDepth`,
+`timeRange`, and `exactMatch`. It preserves all SDK depth values and time aliases.
+It supplies no defaults and strips unknown keys when parsed. The JSON Schema
+advertises only those fields with `additionalProperties: false`; a JSON Schema
+validator may reject extras instead of stripping them. Individual field
+validators are required; call `.optional()` when composing an optional field.
+
+For example, a Zod 4 tool wrapper can use `searchAgentInputSchema` as its
+`inputSchema` and execute it like this:
+
+```typescript
+import { tavily, type TavilySearchOptions } from "@tavily/core";
+import { searchAgentInputSchema } from "@tavily/core/agent-schemas";
+
+const client = tavily({ apiKey: process.env.TAVILY_API_KEY });
+const options: TavilySearchOptions = {
+  searchDepth: "advanced",
+  safeSearch: true,
+  includePublishedDate: true,
+  filterByPublishedDate: false,
+};
+
+async function execute(input: unknown) {
+  const { query, ...overrides } = searchAgentInputSchema.parse(input);
+  const definedOverrides = Object.fromEntries(
+    Object.entries(overrides).filter(([, value]) => value !== undefined)
+  );
+  return client.search(query, { ...options, ...definedOverrides });
+}
+```
+
+Filtering `undefined` preserves developer settings; explicit `false` still
+overrides them. Credentials and client configuration belong in `tavily(...)`.
+The SDK does not automatically validate requests with these opt-in schemas.
+
+Adoption is deliberate: replace copied definitions once, then dependency updates
+carry shared descriptions, enums, constraints, and approved profile changes.
+Adding an SDK option does **not** add an agent input. Wrappers keep responsibility
+for host-specific inputs, configuration precedence, and runtime support; adopting
+this profile must not silently remove their existing public inputs. TypeBox,
+Convex, and Zod 3 consumers need an appropriate adapter or their own composition
+of the neutral definitions. Only Search currently has an approved profile.
+
+For maintainers, add Search request fields in `src/parameters.ts` and their wire
+mapping in `src/search.ts`. Types and schema exports derive from the field
+definitions; update `searchAgentInputParams` only for an approved agent interface
+change. Use the same separation for additional tools when their contracts are
+agreed. Transport-only settings and deprecated aliases stay in `src/types.ts`.
+
+Run `npm test` for loopback HTTP and schema regressions. `npm run test:package`
+also packs and installs temporary consumers to check ESM, CommonJS, declarations,
+and optional Zod isolation; it needs npm registry access and an isolated temporary
+directory. Set `TAVILY_TEST_ZOD_VERSION=4.0.0` to check the minimum supported peer.
+
 # Tavily Extract
 
 The Tavily Extract API allows you to effortlessly retrieve raw content from a list of websites, making it ideal for data collection, content analysis, and research. You can also combine Tavily Extract with our Search method: first, obtain a list of relevant documents, then perform further processing on selected links to gather additional information and use it as context for your research tasks.
