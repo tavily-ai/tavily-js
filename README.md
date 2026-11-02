@@ -4,8 +4,7 @@ The official JavaScript and TypeScript client for Tavily Search, Extract, Crawl,
 Map, Research, and Feedback.
 
 [SDK reference](https://docs.tavily.com/sdk/javascript/reference) ·
-[API reference](https://docs.tavily.com/documentation/api-reference/endpoint/search) ·
-[Migrating to 1.0](#migrating-to-10)
+[API reference](https://docs.tavily.com/documentation/api-reference/endpoint/search)
 
 ## Quick start
 
@@ -13,11 +12,8 @@ Map, Research, and Feedback.
 npm install @tavily/core
 ```
 
-Get an API key from [Tavily](https://app.tavily.com) and set it in your environment:
-
-```bash
-export TAVILY_API_KEY="tvly-YOUR_API_KEY"
-```
+You can try Search and Extract without an API key, subject to shared rate limits.
+Crawl, Map, Research, and Feedback require an API key.
 
 Save this as `search.mjs` and run `node search.mjs`:
 
@@ -32,12 +28,43 @@ const response = await client.search("How does retrieval-augmented generation wo
 console.log(response.results);
 ```
 
-The client reads `TAVILY_API_KEY` automatically. You can also pass
-`tavily({ apiKey: "tvly-YOUR_API_KEY" })` explicitly.
-
 For CommonJS, use `const { tavily } = require("@tavily/core")` and call async
 methods inside an `async` function. The examples below reuse `client` from the
 quick start. SDK options use camelCase, such as `maxResults` and `searchDepth`.
+
+### Using an API key
+
+Get an API key from [Tavily](https://app.tavily.com) and set it in your environment:
+
+```bash
+export TAVILY_API_KEY="tvly-YOUR_API_KEY"
+```
+
+The client reads `TAVILY_API_KEY` automatically. You can also pass
+`tavily({ apiKey: "tvly-YOUR_API_KEY" })` explicitly.
+
+### Keyless mode
+
+When both `apiKey` and `TAVILY_API_KEY` are absent, `tavily()` enables rate-limited
+Search and Extract access. Other methods require an API key.
+
+```javascript
+import { tavily, TavilyKeylessLimitError } from "@tavily/core";
+
+const keylessClient = tavily();
+try {
+  console.log(await keylessClient.search("Battery recycling methods"));
+} catch (error) {
+  if (error instanceof TavilyKeylessLimitError) {
+    console.error(error.capType, error.retryAfter, error.continuationPaths);
+  } else {
+    throw error;
+  }
+}
+```
+
+`retryAfter` is the suggested wait in seconds, or `null` when unavailable.
+See [keyless access](https://docs.tavily.com/documentation/keyless) for limits.
 
 ## Search
 
@@ -178,11 +205,9 @@ Use scores from your application's evaluation or user feedback.
 
 ## Agent tool schemas
 
-Reuse `searchAgentInputSchema` as a Search tool's input schema. It requires
-`query` and allows optional `searchDepth`, `timeRange`, and `exactMatch`.
-Keep other settings, such as result limits and safe search, in your application.
-
-The Zod schemas require Zod 4:
+Use `searchAgentInputSchema` for a Search tool's input: required `query` and
+optional `searchDepth`, `timeRange`, and `exactMatch`. Configure other options in
+your application. Install Zod 4 to use this schema:
 
 ```bash
 npm install zod@^4
@@ -208,19 +233,16 @@ export async function execute(input: unknown) {
 }
 ```
 
-The schema strips unknown fields and converts optional `null` values to
-`undefined`. Filtering these values before merging preserves application defaults;
-an explicit `false` still overrides a default. Ordinary `client.search()` calls
-do not run this validation automatically.
+Parsing strips unknown fields and converts optional `null` to `undefined`.
+Filter `undefined` before merging to preserve your defaults; `false` still
+overrides them. `client.search()` does not apply this validation automatically.
 
-For a custom tool schema, reuse individual validators from
-`searchParameterSchemas` in the same module; add `.optional()` where needed.
-`SearchAgentInput` is the TypeScript type of the parsed input.
+For custom schemas, this module exports `searchParameterSchemas` (add `.optional()`
+where needed) and the parsed input type `SearchAgentInput`.
 
-For hosts that accept JSON Schema, import `searchAgentInputJsonSchema` from
-`@tavily/core/parameters`. That module also exports individual field definitions
-as `searchParameters` and the model's allowed fields as `searchAgentInputParams`.
-It requires no Zod dependency. Only `@tavily/core/agent-schemas` requires Zod 4.
+For JSON Schema, use `searchAgentInputJsonSchema` from `@tavily/core/parameters`.
+That module also exports `searchParameters` and `searchAgentInputParams`, without
+requiring Zod.
 
 ## Configuration
 
@@ -243,53 +265,9 @@ Configure proxies with `tavily({ proxies: { http: "http://localhost:8080",
 https: "http://localhost:8080" } })`, or set `TAVILY_HTTP_PROXY` and
 `TAVILY_HTTPS_PROXY`. Each proxy is optional.
 
-### Trying without an API key
-
-When both `apiKey` and `TAVILY_API_KEY` are absent, `tavily()` enables rate-limited
-Search and Extract access. Other methods require an API key.
-
-```javascript
-import { tavily, TavilyKeylessLimitError } from "@tavily/core";
-
-const keylessClient = tavily();
-try {
-  console.log(await keylessClient.search("Battery recycling methods"));
-} catch (error) {
-  if (error instanceof TavilyKeylessLimitError) {
-    console.error(error.capType, error.retryAfter, error.continuationPaths);
-  } else {
-    throw error;
-  }
-}
-```
-
-`retryAfter` is the suggested wait in seconds, or `null` when unavailable.
-See [keyless access](https://docs.tavily.com/documentation/keyless) for limits.
-
-## Migrating to 1.0
-
-Version 1.0 removes `searchQNA()` and `searchContext()`. Use `search()` instead:
-
-```javascript
-const response = await client.search("Battery recycling methods", {
-  searchDepth: "advanced",
-  includeAnswer: true,
-});
-
-const answer = response.answer;
-const context = JSON.stringify(
-  response.results.map(({ url, content }) => ({ url, content }))
-);
-```
-
-`searchDepth: "advanced"` preserves the old Q&A helper's default. For context-only
-requests, omit `includeAnswer`. Context is no longer truncated to `maxTokens`
-(previously 4,000 by default); apply your token budget before passing it to a model.
-The associated `TavilyQNASearchFuncton` and `TavilyContextSearchFuncton` types have
-also been removed.
-
 ## Resources
 
+- [Release notes](CHANGELOG.md).
 - [SDK reference](https://docs.tavily.com/sdk/javascript/reference): method options and response fields.
 - [Credits and pricing](https://docs.tavily.com/documentation/api-credits).
 - [Documentation index for agents](https://docs.tavily.com/llms.txt).
