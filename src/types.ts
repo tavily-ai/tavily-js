@@ -1,25 +1,9 @@
+import type { SearchParameterValues } from "./parameters";
+
 export type TavilySearchFuncton = (
   query: string,
   options?: TavilySearchOptions
 ) => Promise<TavilySearchResponse>;
-
-/**
- * @deprecated This function is deprecated and will be removed in a future version.
- * Use `search()` with `includeAnswer: true` instead, which returns the answer in the response.
- */
-export type TavilyQNASearchFuncton = (
-  query: string,
-  options: TavilySearchOptions
-) => Promise<string>;
-
-/**
- * @deprecated This function is deprecated and will be removed in a future version.
- * Use `search()` directly and process the results as needed.
- */
-export type TavilyContextSearchFuncton = (
-  query: string,
-  options: TavilySearchOptions
-) => Promise<string>;
 
 export type TavilyExtractFunction = (
   urls: Array<string>,
@@ -54,10 +38,6 @@ export type TavilyFeedbackFunction = (
 
 export type TavilyClient = {
   search: TavilySearchFuncton;
-  /** @deprecated Use `search()` with `includeAnswer: true` instead */
-  searchQNA: TavilyQNASearchFuncton;
-  /** @deprecated Use `search()` directly and process results as needed */
-  searchContext: TavilyContextSearchFuncton;
   extract: TavilyExtractFunction;
   crawl: TavilyCrawlFunction;
   map: TavilyMapFunction;
@@ -95,36 +75,10 @@ export type TavilyRequestConfig = {
   clientName?: string;
 };
 
-export type TavilySearchOptions = {
-  searchDepth?: "basic" | "advanced" | "fast" | "ultra-fast";
-  topic?: "general" | "news" | "finance";
-  days?: number;
-  maxResults?: number;
-  includeImages?: boolean;
-  includeImageDescriptions?: boolean;
-  includeAnswer?: boolean | "basic" | "advanced";
-  includeRawContent?: false | "markdown" | "text";
-  includeDomains?: string[];
-  excludeDomains?: string[];
-  includeDomainsMode?: "restrict" | "prefer";
-  maxTokens?: number;
-  timeRange?: "year" | "month" | "week" | "day" | "y" | "m" | "w" | "d";
-  chunksPerSource?: number;
-  country?: string;
-  startDate?: string;
-  endDate?: string;
-  maxAgeHours?: number;
+export type TavilySearchOptions = Partial<Omit<SearchParameterValues, "query">> & {
   /** @deprecated Use maxAgeHours. */
   maxHours?: number;
-  autoParameters?: boolean;
   timeout?: number;
-  includeFavicon?: boolean;
-  includeUsage?: boolean;
-  exactMatch?: boolean;
-  fetchTimeout?: number;
-  cacheFallback?: boolean;
-  language?: string;
-  filterByLanguage?: boolean;
   sessionId?: string;
   humanId?: string;
   clientName?: string;

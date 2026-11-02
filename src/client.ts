@@ -1,5 +1,5 @@
 import { TavilyClientOptions, TavilyClient, TavilyProxyOptions, TavilyRequestConfig } from "./types";
-import { _search, _searchQNA, _searchContext } from "./search";
+import { _search } from "./search";
 import { _extract } from "./extract";
 import { _crawl } from "./crawl";
 import { _map } from "./map";
@@ -44,10 +44,6 @@ export function tavily(options?: TavilyClientOptions): TavilyClient {
     return {
       search: _search(requestConfig),
       extract: _extract(requestConfig),
-      searchQNA: makeKeylessUnsupported("searchQNA") as TavilyClient["searchQNA"],
-      searchContext: makeKeylessUnsupported(
-        "searchContext"
-      ) as TavilyClient["searchContext"],
       crawl: makeKeylessUnsupported("crawl") as TavilyClient["crawl"],
       map: makeKeylessUnsupported("map") as TavilyClient["map"],
       research: makeKeylessUnsupported("research") as TavilyClient["research"],
@@ -61,8 +57,6 @@ export function tavily(options?: TavilyClientOptions): TavilyClient {
   return {
     search: _search(requestConfig),
     extract: _extract(requestConfig),
-    searchQNA: _searchQNA(requestConfig),
-    searchContext: _searchContext(requestConfig),
     crawl: _crawl(requestConfig),
     map: _map(requestConfig),
     research: _research(requestConfig),

@@ -1,5 +1,4 @@
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
-import { encodingForModel, TiktokenModel } from "js-tiktoken";
 import { TavilyRequestConfig } from "./types";
 import { HttpsProxyAgent } from "https-proxy-agent";
 import {
@@ -8,8 +7,6 @@ import {
 } from "./errors";
 
 const BASE_URL = "https://api.tavily.com";
-const DEFAULT_MODEL_ENCODING = "gpt-3.5-turbo";
-export const DEFAULT_MAX_TOKENS = 4000;
 export const DEFAULT_CHUNKS_PER_SOURCE = 3;
 
 type TavilyErrorData = {
@@ -102,32 +99,6 @@ export async function get(
     }
   }
   return axios.get(url, config);
-}
-
-function getTotalTokensFromString(
-  str: string,
-  encodingName: TiktokenModel = DEFAULT_MODEL_ENCODING
-) {
-  const encoding = encodingForModel(encodingName);
-  return encoding.encode(str).length;
-}
-
-export function getMaxTokensFromList(
-  data: Array<any>,
-  maxTokens: number = DEFAULT_MAX_TOKENS
-): string {
-  var result = [];
-  let currentTokens = 0;
-  for (let item of data) {
-    let itemString = JSON.stringify(item);
-    let newTotalTokens = currentTokens + getTotalTokensFromString(itemString);
-    if (newTotalTokens > maxTokens) {
-      break;
-    }
-    result.push(item);
-    currentTokens = newTotalTokens;
-  }
-  return JSON.stringify(result);
 }
 
 export function handleRequestError(res: AxiosResponse): never {
