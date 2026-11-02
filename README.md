@@ -1,406 +1,298 @@
 # Tavily JavaScript SDK
 
-Tavily's JavaScript SDK allows for easy interaction with the Tavily API, offering the full range of our search, extract, crawl, map, and research functionalities directly from your JavaScript and TypeScript programs. Easily integrate smart search, content extraction, and research capabilities into your applications, harnessing Tavily's powerful features.
+The official JavaScript and TypeScript client for Tavily Search, Extract, Crawl,
+Map, Research, and Feedback.
 
-## Installing
+[SDK reference](https://docs.tavily.com/sdk/javascript/reference) ·
+[API reference](https://docs.tavily.com/documentation/api-reference/endpoint/search) ·
+[Migrating to 1.0](#migrating-to-10)
+
+## Quick start
 
 ```bash
-npm i @tavily/core
+npm install @tavily/core
 ```
 
-## Migrating to 1.0
+Get an API key from [Tavily](https://app.tavily.com) and set it in your environment:
 
-Version 1.0 removes the deprecated `searchQNA()` and `searchContext()` methods
-and their `TavilyQNASearchFuncton` and `TavilyContextSearchFuncton` types.
-Use `search()` to request an answer or build context from the returned results:
+```bash
+export TAVILY_API_KEY="tvly-YOUR_API_KEY"
+```
+
+Save this as `search.mjs` and run `node search.mjs`:
 
 ```javascript
-const { tavily } = require("@tavily/core");
-const client = tavily({ apiKey: process.env.TAVILY_API_KEY });
-const result = await client.search("Latest AI news", {
-  searchDepth: "advanced",
-  includeAnswer: true,
+import { tavily } from "@tavily/core";
+
+const client = tavily();
+const response = await client.search("How does retrieval-augmented generation work?", {
+  maxResults: 5,
 });
 
-const answer = result.answer;
-const context = JSON.stringify(
-  result.results.map(({ url, content }) => ({ url, content }))
-);
+console.log(response.results);
 ```
 
-The explicit `searchDepth: "advanced"` preserves the old Q&A helper's default;
-keep any other depth you previously configured. For context-only calls, omit
-`includeAnswer`. The SDK no longer provides `searchContext()`'s `maxTokens`
-truncation (previously 4,000 tokens by default); apply any required token budget
-in your application before passing context to a model.
+The client reads `TAVILY_API_KEY` automatically. You can also pass
+`tavily({ apiKey: "tvly-YOUR_API_KEY" })` explicitly.
 
-# Tavily Search
+For CommonJS, use `const { tavily } = require("@tavily/core")` and call async
+methods inside an `async` function. The examples below reuse `client` from the
+quick start. SDK options use camelCase, such as `maxResults` and `searchDepth`.
 
-Connect your LLM to the web using the Tavily Search API. Tavily Search is a powerful search engine tailored for use by LLMs in agentic applications.
+## Search
 
-## Usage
-
-Below is a simple code snippet that shows you how to use Tavily Search. The different steps and components of this code are explained in more detail on the JavaScript [API Reference](https://docs.tavily.com/sdk/get-started/javascript) page.
+Search the web and return ranked sources. Request an answer or page content when
+you need them:
 
 ```javascript
-const { tavily } = require("@tavily/core");
+const response = await client.search("Recent advances in battery recycling", {
+  searchDepth: "advanced",
+  maxResults: 5,
+  includeAnswer: true,
+  includeRawContent: "markdown",
+  includePublishedDate: true,
+});
 
-// Step 1. Instantiating your Tavily client
-const tvly = tavily({ apiKey: "tvly-YOUR_API_KEY" });
-
-// Step 2. Executing a simple search query
-const response = await tvly.search("Who is Leo Messi?");
-
-// Step 3. That's it! You've done a Tavily Search!
-console.log(response);
+console.log(response.answer);
+for (const result of response.results) {
+  console.log(result.title, result.url, result.content, result.publishedDate);
+}
 ```
 
-### Using exact match to find specific names or phrases
+Use `exactMatch: true` with quoted phrases to require an exact match:
 
 ```javascript
-const { tavily } = require("@tavily/core");
-
-const tvly = tavily({ apiKey: "tvly-YOUR_API_KEY" });
-
-// Use exactMatch: true to only return results containing the exact phrase(s) inside quotes
-const response = await tvly.search('"John Smith" CEO Acme Corp', {
+const response = await client.search('"lithium iron phosphate" recycling', {
   exactMatch: true,
 });
-console.log(response);
 ```
 
-### Keyless mode
+## Extract
 
-You can try Tavily without an API key. When `apiKey` is omitted (and the
-`TAVILY_API_KEY` environment variable is not set), the client runs in
-**keyless mode**: `search` and `extract` are available with a shared rate
-limit, and the other methods throw an error directing you to provide a key.
+Read page content from known URLs. Failed URLs are returned in `failedResults`:
 
 ```javascript
-const { tavily, TavilyKeylessLimitError } = require("@tavily/core");
+const response = await client.extract([
+  "https://en.wikipedia.org/wiki/Artificial_intelligence",
+  "https://en.wikipedia.org/wiki/Machine_learning",
+], { format: "markdown" });
 
-// No apiKey — keyless mode
-const tvly = tavily();
+for (const result of response.results) {
+  console.log(result.url, result.rawContent);
+}
+for (const failure of response.failedResults) {
+  console.error(failure.url, failure.error);
+}
+```
 
-try {
-  const response = await tvly.search("Who is Leo Messi?");
-  console.log(response);
-} catch (err) {
-  if (err instanceof TavilyKeylessLimitError) {
-    // Rate-limit cap hit. Inspect structured fields to decide what to do next.
-    console.log("cap:", err.capType);
-    console.log("retry after:", err.retryAfter);
-    console.log("bonus eligible:", err.bonusEligible);
-    console.log("continuation options:", err.continuationPaths);
-  } else {
-    throw err;
+## Crawl
+
+Discover pages on a website and extract their content:
+
+```javascript
+const response = await client.crawl("https://docs.tavily.com", {
+  instructions: "Find pages about the JavaScript SDK",
+  maxDepth: 2,
+  limit: 10,
+});
+
+for (const result of response.results) {
+  console.log(result.url, result.rawContent);
+}
+```
+
+## Map
+
+Discover URLs on a website without extracting page content:
+
+```javascript
+const response = await client.map("https://docs.tavily.com", {
+  instructions: "Find API reference pages",
+  maxDepth: 2,
+  limit: 10,
+});
+
+console.log(response.results);
+```
+
+## Research
+
+Create a research task, then retrieve its status and report using the returned
+`requestId`. Research runs asynchronously; call `getResearch()` again while the
+status is `pending` or `in_progress`.
+
+```javascript
+const task = await client.research("Compare current battery recycling methods", {
+  model: "mini",
+  citationFormat: "apa",
+});
+
+if ("requestId" in task) {
+  const result = await client.getResearch(task.requestId, { includeUsage: true });
+  console.log(result.status);
+  if ("content" in result) {
+    console.log(result.content, result.sources);
+  }
+  console.log(result.usage?.credits);
+}
+```
+
+### Streaming
+
+Set `stream: true` to receive raw [Server-Sent Event (SSE) chunks](https://docs.tavily.com/documentation/api-reference/endpoint/research-streaming):
+
+```javascript
+const stream = await client.research("Compare current battery recycling methods", {
+  model: "mini",
+  stream: true,
+});
+
+if (Symbol.asyncIterator in stream) {
+  for await (const chunk of stream) {
+    process.stdout.write(chunk);
   }
 }
 ```
 
-> To learn more about the different parameters, head to our [JavaScript API Reference](https://docs.tavily.com/sdk/reference/javascript).
+Chunks are byte buffers, not parsed events. If you need individual events,
+decode the stream with an SSE parser; a chunk may contain part of an event or
+multiple events.
 
-## Shared Search schemas for integrations
+## Feedback
 
-`@tavily/core/parameters` exports dependency-free `searchParameters` (individual
-JSON Schema field definitions), `searchAgentInputParams` (the approved selection
-and required/optional status), and `searchAgentInputJsonSchema` (Draft 2020-12).
-The field definitions also supply the SDK's named Search option types.
+Attach a quality assessment to a Search request or individual result:
 
-`@tavily/core/agent-schemas` exports `searchAgentInputSchema`,
-`searchParameterSchemas`, and the `SearchAgentInput` type. This entry point
-requires **Zod 4 Classic** (`npm install zod@^4`). Zod is an optional peer and
-is not bundled or loaded by the normal client or the neutral parameters entry
-point. Zod 3 validators, including `zod/v3`, are not directly compatible.
+```javascript
+const response = await client.search("Battery recycling methods");
+const firstResult = response.results[0];
 
-The approved Search input has required `query` and optional `searchDepth`,
-`timeRange`, and `exactMatch`. It preserves all SDK depth values and time aliases.
-It supplies no defaults, normalizes optional `null` inputs to `undefined`, and
-strips unknown keys when parsed. The JSON Schema
-advertises only those fields with `additionalProperties: false`; a JSON Schema
-validator may reject extras instead of stripping them. Individual field
-validators are required; call `.optional()` when composing an optional field.
+if (firstResult) {
+  await client.feedback({
+    requestId: response.requestId,
+    urlsScores: [{ url: firstResult.url, agentScore: 0.9 }],
+  });
+}
+```
 
-For example, a Zod 4 tool wrapper can use `searchAgentInputSchema` as its
-`inputSchema` and execute it like this:
+Use scores from your application's evaluation or user feedback.
+
+## Agent tool schemas
+
+Reuse `searchAgentInputSchema` as a Search tool's input schema. It requires
+`query` and allows optional `searchDepth`, `timeRange`, and `exactMatch`.
+Keep other settings, such as result limits and safe search, in your application.
+
+The Zod schemas require Zod 4:
+
+```bash
+npm install zod@^4
+```
 
 ```typescript
 import { tavily, type TavilySearchOptions } from "@tavily/core";
 import { searchAgentInputSchema } from "@tavily/core/agent-schemas";
 
-const client = tavily({ apiKey: process.env.TAVILY_API_KEY });
-const options: TavilySearchOptions = {
+const client = tavily();
+const defaults: TavilySearchOptions = {
   searchDepth: "advanced",
+  maxResults: 5,
   safeSearch: true,
-  includePublishedDate: true,
-  filterByPublishedDate: false,
 };
 
-async function execute(input: unknown) {
+export async function execute(input: unknown) {
   const { query, ...overrides } = searchAgentInputSchema.parse(input);
   const definedOverrides = Object.fromEntries(
     Object.entries(overrides).filter(([, value]) => value !== undefined)
   );
-  return client.search(query, { ...options, ...definedOverrides });
+  return client.search(query, { ...defaults, ...definedOverrides });
 }
 ```
 
-Filtering `undefined` preserves developer settings; explicit `false` still
-overrides them. Credentials and client configuration belong in `tavily(...)`.
-The SDK does not automatically validate requests with these opt-in schemas.
+The schema strips unknown fields and converts optional `null` values to
+`undefined`. Filtering these values before merging preserves application defaults;
+an explicit `false` still overrides a default. Ordinary `client.search()` calls
+do not run this validation automatically.
 
-Adoption is deliberate: replace copied definitions once, then dependency updates
-carry shared descriptions, enums, constraints, and approved profile changes.
-Adding an SDK option does **not** add an agent input. Wrappers keep responsibility
-for host-specific inputs, configuration precedence, and runtime support; adopting
-this profile must not silently remove their existing public inputs. TypeBox,
-Convex, and Zod 3 consumers need an appropriate adapter or their own composition
-of the neutral definitions. Only Search currently has an approved profile.
+For a custom tool schema, reuse individual validators from
+`searchParameterSchemas` in the same module; add `.optional()` where needed.
+`SearchAgentInput` is the TypeScript type of the parsed input.
 
-For maintainers, define Search request fields once in `src/parameters.ts` using
-camelCase names. Types, validators, and snake_case request names derive from those
-definitions. Update `searchAgentInputParams` only for an approved agent interface
-change. Transport-only settings and deprecated aliases remain explicit in
-`src/types.ts` and `src/search.ts`; unknown request options pass through unchanged.
+For hosts that accept JSON Schema, import `searchAgentInputJsonSchema` from
+`@tavily/core/parameters`. That module also exports individual field definitions
+as `searchParameters` and the model's allowed fields as `searchAgentInputParams`.
+It requires no Zod dependency. Only `@tavily/core/agent-schemas` requires Zod 4.
 
-Run `npm test` for loopback HTTP and schema regressions. `npm run test:package`
-also packs and installs temporary consumers to check ESM, CommonJS, declarations,
-and optional Zod isolation; it needs npm registry access and an isolated temporary
-directory. Set `TAVILY_TEST_ZOD_VERSION=4.0.0` to check the minimum supported peer.
+## Configuration
 
-# Tavily Extract
-
-The Tavily Extract API allows you to effortlessly retrieve raw content from a list of websites, making it ideal for data collection, content analysis, and research. You can also combine Tavily Extract with our Search method: first, obtain a list of relevant documents, then perform further processing on selected links to gather additional information and use it as context for your research tasks.
-
-## Usage
-
-Below is a simple code snippet demonstrating how to use Tavily Extract. The different steps and components of this code are explained in more detail on the JavaScript [API Reference](https://docs.tavily.com/docs/javascript-sdk/tavily-extract/api-reference) page.
+Set optional attribution identifiers on the client:
 
 ```javascript
-const { tavily } = require("@tavily/core");
-
-// Step 1. Instantiating your TavilyClient
-const tvly = tavily({ apiKey: "tvly-YOUR_API_KEY" });
-
-// Step 2. Defining the list of URLs to extract content from
-const urls = [
-  "https://en.wikipedia.org/wiki/Artificial_intelligence",
-  "https://en.wikipedia.org/wiki/Machine_learning",
-  "https://en.wikipedia.org/wiki/Data_science",
-  "https://en.wikipedia.org/wiki/Quantum_computing",
-  "https://en.wikipedia.org/wiki/Climate_change",
-]; // You can provide up to 20 URLs simultaneously
-
-// Step 3. Executing the extract request
-response = await tvly.extract(urls);
-
-// Step 4. Printing the extracted raw content
-for (let result of response.results) {
-  console.log(`URL: ${result.url}`);
-  console.log(`Raw Content: ${result.rawContent}\n`);
-}
-// Note that URLs that could not be extracted will be stored in response.failedResults
-```
-
-> To learn more about the different parameters, head to our [JavaScript API Reference](https://docs.tavily.com/sdk/reference/javascript).
-
-# Tavily Crawl
-
-Tavily Crawl is an agent‐first site explorer that leverages breadth‐first crawling to navigate websites. It uses natural-language goals to intelligently uncover deeply buried “needle-in-a-haystack” information or perform high-volume data retrieval across an entire site.
-
-## Usage
-
-Below is a simple code snippet demonstrating how to use Tavily Crawl. The different steps and components of this code are explained in more detail on the JavaScript [API Reference](https://docs.tavily.com/docs/javascript-sdk/tavily-crawl/api-reference) page.
-
-```javascript
-const { tavily } = require("@tavily/core");
-
-// Step 1. Instantiating your Tavily client
-const tvly = tavily({ apiKey: "tvly-YOUR_API_KEY" });
-
-// Step 2. Defining the starting URL to crawl
-const start_url = "https://wikipedia.org/wiki/Lemon";
-
-// Step 3. Executing the crawl request with instructions to surface only pages about citrus fruits
-response = await tvly.crawl(start_url, {
-  max_depth: 3,
-  limit: 50,
-  instructions: "Find all pages on citrus fruits",
-});
-
-// Step 4. Printing pages matching the query
-for (let result of response.results) {
-  console.log(`URL: ${result.url}`);
-  console.log(`Raw Content: ${result.rawContent.substring(0, 200)}...`);
-}
-```
-
-# Tavily Map
-
-Map lets you discover and visualize the structure of a website starting from a base URL.
-
-## Usage
-
-Below are some code snippets that demonstrate how to interact with our Map API. Each step and component of this code is explained in greater detail in the API Methods section below.
-
-### Mapping a website with instructions
-
-```javascript
-const { tavily } = require("@tavily/core");
-
-// Step 1. Instantiating your Tavily client
-const tvly = tavily({ apiKey: "tvly-YOUR_API_KEY" });
-
-// Step 2. Defining the starting URL
-const start_url = "https://wikipedia.org/wiki/Lemon";
-
-// Step 3. Executing the map request with parameters to focus on specific pages
-response = await tvly.map(start_url, {
-  max_depth: 3,
-  limit: 50,
-  instructions: "Find all pages on citrus fruits",
-});
-
-// Step 4. Printing the site structure
-for (let url of response.results) {
-  console.log(`URl: ${url}`);
-}
-```
-
-> To learn more about the different parameters, head to our [JavaScript API Reference](https://docs.tavily.com/sdk/reference/javascript).
-
-# Tavily Research
-
-Research lets you create comprehensive research reports on any topic, with automatic source gathering, analysis, and structured output.
-
-## Usage
-
-Below are some code snippets that demonstrate how to interact with our Research API. Each step and component of this code is explained in greater detail in the API Methods section below.
-
-### Creating a research task and retrieving results
-
-```javascript
-const { tavily } = require("@tavily/core");
-
-// Step 1. Instantiating your Tavily client
-const tvly = tavily({ apiKey: "tvly-YOUR_API_KEY" });
-
-// Step 2. Creating a research task
-const response = await tvly.research("Research the latest developments in AI", {
-  model: "pro",
-  citationFormat: "apa",
-});
-
-// Step 3. Retrieving the research results
-const requestId = response.requestId;
-const result = await tvly.getResearch(requestId);
-
-// Step 4. Printing the research report
-console.log(`Status: ${result.status}`);
-console.log(`Content: ${result.content}`);
-console.log(`Sources: ${result.sources.length} sources found`);
-```
-
-### Research credit usage
-
-```javascript
-const { tavily } = require("@tavily/core");
-const tvly = tavily({ apiKey: "tvly-YOUR_API_KEY" });
-const result = await tvly.getResearch("YOUR_REQUEST_ID", { includeUsage: true });
-console.log(result.usage?.credits);
-```
-
-Usage is off by default. Some tasks have no usage data.
-
-### Streaming research results
-
-```javascript
-const { tavily } = require("@tavily/core");
-
-// Step 1. Instantiating your Tavily client
-const tvly = tavily({ apiKey: "tvly-YOUR_API_KEY" });
-
-// Step 2. Creating a streaming research task
-const stream = await tvly.research("Research the latest developments in AI", {
-  model: "pro",
-  stream: true,
-});
-
-// Step 3. Processing the stream as it arrives
-for await (const chunk of result as AsyncGenerator<Buffer, void, unknown>) {
-    console.log("Received chunk:", chunk.toString('utf-8'));
-}
-```
-
-> To learn more about the different parameters, head to our [JavaScript API Reference](https://docs.tavily.com/sdk/reference/javascript).
-
-# Tavily Feedback
-
-Feedback lets you report on how useful a search request or session was, so Tavily can improve result quality over time.
-
-## Usage
-
-Below is a code snippet that demonstrates how to submit feedback. Each step and component of this code is explained in greater detail in the API Methods section below.
-
-### Scoring a search request
-
-```javascript
-const { tavily } = require("@tavily/core");
-
-const tvly = tavily({ apiKey: "tvly-YOUR_API_KEY" });
-
-const response = await tvly.search("Latest AI developments");
-
-// An agent scores its own search call — honestly, per result, not one flat number
-await tvly.feedback({
-  requestId: response.requestId,
-  agentScore: 0.7,
-  urlsScores: [
-    { id: response.results[0].id, agentScore: 0.9 },
-    { id: response.results[1].id, agentScore: 0.2, comment: "Outdated — reports on a 2023 event" },
-  ],
-});
-```
-
-> To learn more about the different parameters, head to our [JavaScript API Reference](https://docs.tavily.com/sdk/reference/javascript).
-
-# Additional Information
-
-## Proxies
-
-If you want to use either client with specified HTTP or HTTPS proxies, you can do so by passing the proxies parameter as a dictionary in the format `{ http?: string, https?: string }`, where each key is optional, or by setting the `TAVILY_HTTP_PROXY` or `TAVILY_HTTPS_PROXY` environment variables.
-
-## Session & User Tracking
-
-`sessionId`, `humanId`, and `clientName` are optional identifiers that help attribute requests to a logical session, an end user, and a named client. All three are sent as HTTP headers (`X-Session-Id`, `X-Human-Id`, `X-Client-Name`) and are never persisted in raw form — `humanId` is hashed server-side.
-
-Set them once at client init, or per-call (per-call wins):
-
-```javascript
-// Client-level — applied to every request
-const client = tavily({
-  apiKey: "tvly-YOUR_API_KEY",
-  sessionId: "my-session-123",
-  humanId: "internal-user-id-42",
+const trackedClient = tavily({
+  sessionId: "session-123",
+  humanId: "user-42",
   clientName: "my-app",
 });
 
-// Per-call override
-await client.search("hello", { sessionId: "ad-hoc-session" });
+await trackedClient.search("Battery recycling methods", { sessionId: "session-456" });
 ```
 
-All three are opt-in. Leave them unset and the SDK sends nothing — behavior is identical to earlier versions.
+Search, Extract, Crawl, Map, and Research accept per-call overrides for these
+identifiers. In `feedback()`, `sessionId` identifies the session being evaluated.
 
-## Cost
+Configure proxies with `tavily({ proxies: { http: "http://localhost:8080",
+https: "http://localhost:8080" } })`, or set `TAVILY_HTTP_PROXY` and
+`TAVILY_HTTPS_PROXY`. Each proxy is optional.
 
-Head to the [API Credits Overview](https://docs.tavily.com/guides/api-credits) in our documentation to learn more about how many API Credits each request costs.
+### Trying without an API key
 
-## License
+When both `apiKey` and `TAVILY_API_KEY` are absent, `tavily()` enables rate-limited
+Search and Extract access. Other methods require an API key.
 
-This project is licensed under the terms of the MIT license.
+```javascript
+import { tavily, TavilyKeylessLimitError } from "@tavily/core";
 
-## Contact
+const keylessClient = tavily();
+try {
+  console.log(await keylessClient.search("Battery recycling methods"));
+} catch (error) {
+  if (error instanceof TavilyKeylessLimitError) {
+    console.error(error.capType, error.retryAfter, error.continuationPaths);
+  } else {
+    throw error;
+  }
+}
+```
 
-If you are encountering issues while using Tavily, please email us at [support@tavily.com](mailto:support@tavily.com). We'll be happy to help you.
+`retryAfter` is the suggested wait in seconds, or `null` when unavailable.
+See [keyless access](https://docs.tavily.com/documentation/keyless) for limits.
 
-If you want to stay updated on the latest Tavily news and releases, head to our [Developer Community](https://community.tavily.com) to learn more!
+## Migrating to 1.0
+
+Version 1.0 removes `searchQNA()` and `searchContext()`. Use `search()` instead:
+
+```javascript
+const response = await client.search("Battery recycling methods", {
+  searchDepth: "advanced",
+  includeAnswer: true,
+});
+
+const answer = response.answer;
+const context = JSON.stringify(
+  response.results.map(({ url, content }) => ({ url, content }))
+);
+```
+
+`searchDepth: "advanced"` preserves the old Q&A helper's default. For context-only
+requests, omit `includeAnswer`. Context is no longer truncated to `maxTokens`
+(previously 4,000 by default); apply your token budget before passing it to a model.
+The associated `TavilyQNASearchFuncton` and `TavilyContextSearchFuncton` types have
+also been removed.
+
+## Resources
+
+- [SDK reference](https://docs.tavily.com/sdk/javascript/reference): method options and response fields.
+- [Credits and pricing](https://docs.tavily.com/documentation/api-credits).
+- [Documentation index for agents](https://docs.tavily.com/llms.txt).
+- [Support](mailto:support@tavily.com) and [community](https://community.tavily.com).
+
+Released under the [MIT license](LICENSE).
