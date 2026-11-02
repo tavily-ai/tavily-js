@@ -5,6 +5,12 @@
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "parameters": ["dist/parameters.d.ts"],
+      "agent-schemas": ["dist/agent-schemas.d.ts"]
+    }
+  },
   "files": [
     "dist"
   ],

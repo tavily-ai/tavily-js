@@ -12,8 +12,8 @@ const installedZod = JSON.parse(readFileSync(join(root, "node_modules/zod/packag
 test("packed ESM/CJS exports and declarations work with optional Zod absent and present", () => {
   const dir = mkdtempSync(join(tmpdir(), "tavily-core-package-"));
   const run = (file, args, cwd = dir) => execFileSync(file, args, { cwd, encoding: "utf8", stdio: "pipe" });
-  const compile = file => run(process.execPath, [tsc, "--noEmit", "--strict", "--target", "es2020",
-    "--module", "nodenext", "--moduleResolution", "nodenext", "--esModuleInterop",
+  const compile = (file, module = "nodenext", moduleResolution = "nodenext") => run(process.execPath, [tsc, "--noEmit", "--strict", "--target", "es2020",
+    "--module", module, "--moduleResolution", moduleResolution, "--esModuleInterop",
     "--typeRoots", join(root, "node_modules/@types"), file]);
   try {
     const [pack] = JSON.parse(run("npm", ["pack", "--json", "--pack-destination", dir], root));
@@ -51,6 +51,7 @@ test("packed ESM/CJS exports and declarations work with optional Zod absent and 
     for (const extension of ["mts", "cts"]) {
       writeFileSync(join(dir, `plain.${extension}`), plainTypes);
       compile(`plain.${extension}`);
+      if (extension === "cts") compile(`plain.${extension}`, "commonjs", "node10");
     }
 
     // Test the declared minimum by setting TAVILY_TEST_ZOD_VERSION=4.0.0.
@@ -78,6 +79,7 @@ test("packed ESM/CJS exports and declarations work with optional Zod absent and 
     for (const extension of ["mts", "cts"]) {
       writeFileSync(join(dir, `schema.${extension}`), schemaTypes);
       compile(`schema.${extension}`);
+      if (extension === "cts") compile(`schema.${extension}`, "commonjs", "node10");
     }
     run(process.execPath, ["-e", `(async () => {
       const assert = require('node:assert/strict');
