@@ -1,4 +1,5 @@
 import { AxiosError, AxiosResponse } from "axios";
+import { searchParameters } from "./parameters";
 import {
   TavilySearchOptions,
   TavilySearchFuncton,
@@ -10,47 +11,24 @@ import {
   handleTimeoutError,
 } from "./utils";
 
+// Map declared Search fields only; explicit API names and unknown extras win.
+function serializeSearchParameters(parameters: Record<string, unknown>) {
+  const extras = { ...parameters };
+  const body: Record<string, unknown> = {};
+  for (const name of Object.keys(searchParameters)) {
+    const apiName = name.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
+    body[apiName] = parameters[name];
+    delete extras[name];
+  }
+  return { ...body, ...extras };
+}
+
 export function _search(requestConfig: TavilyRequestConfig): TavilySearchFuncton {
   return async function search(
     query: string,
     options: Partial<TavilySearchOptions> = {}
   ) {
-    const {
-      searchDepth,
-      topic,
-      days,
-      maxResults,
-      includeImages,
-      includeImageDescriptions,
-      includeAnswer,
-      includeRawContent,
-      includeDomains,
-      excludeDomains,
-      includeDomainsMode,
-      timeRange,
-      chunksPerSource,
-      country,
-      startDate,
-      endDate,
-      maxAgeHours,
-      maxHours,
-      autoParameters,
-      timeout,
-      includeFavicon,
-      includeUsage,
-      exactMatch,
-      fetchTimeout,
-      cacheFallback,
-      language,
-      filterByLanguage,
-      safeSearch,
-      includePublishedDate,
-      filterByPublishedDate,
-      sessionId,
-      humanId,
-      clientName,
-      ...kwargs
-    } = options;
+    const { maxHours, timeout, sessionId, humanId, clientName, ...parameters } = options;
 
     const requestTimeout = timeout ?? 60; // Default to 60s
     const callConfig: TavilyRequestConfig = {
@@ -63,38 +41,11 @@ export function _search(requestConfig: TavilyRequestConfig): TavilySearchFuncton
     try {
       const response = await post(
         "search",
-        {
+        serializeSearchParameters({
           query,
-          search_depth: searchDepth,
-          topic: topic,
-          days: days,
-          max_results: maxResults,
-          include_images: includeImages,
-          include_image_descriptions: includeImageDescriptions,
-          include_answer: includeAnswer,
-          include_raw_content: includeRawContent,
-          include_domains: includeDomains,
-          exclude_domains: excludeDomains,
-          include_domains_mode: includeDomainsMode,
-          time_range: timeRange,
-          chunks_per_source: chunksPerSource,
-          country: country,
-          start_date: startDate,
-          end_date: endDate,
-          max_age_hours: maxAgeHours ?? maxHours,
-          auto_parameters: autoParameters,
-          include_favicon: includeFavicon,
-          include_usage: includeUsage,
-          exact_match: exactMatch,
-          fetch_timeout: fetchTimeout,
-          cache_fallback: cacheFallback,
-          language: language,
-          filter_by_language: filterByLanguage,
-          safe_search: safeSearch,
-          include_published_date: includePublishedDate,
-          filter_by_published_date: filterByPublishedDate,
-          ...kwargs,
-        },
+          ...parameters,
+          maxAgeHours: parameters.maxAgeHours ?? maxHours,
+        }),
         callConfig,
         requestTimeout
       );

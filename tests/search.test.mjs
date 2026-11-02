@@ -66,6 +66,49 @@ test("Search retains extras, snake_case precedence, aliases, zero and per-call h
   assert.deepEqual(requests.at(-1).body, { query: "test", max_age_hours: 12, safe_search: true });
 });
 
+test("Search serializes every declared request field without changing options", async () => {
+  const options = Object.freeze({
+    searchDepth: "advanced", topic: "news", days: 3, maxResults: 5,
+    includeImages: true, includeImageDescriptions: true, includeAnswer: "advanced",
+    includeRawContent: "markdown", includeDomains: ["example.com"], excludeDomains: ["blocked.com"],
+    includeDomainsMode: "prefer", timeRange: "week", chunksPerSource: 2, country: "united states",
+    startDate: "2026-01-01", endDate: "2026-01-31", maxAgeHours: 24, autoParameters: false,
+    includeFavicon: true, includeUsage: true, exactMatch: false, fetchTimeout: 10,
+    cacheFallback: false, language: "english", filterByLanguage: true, safeSearch: false,
+    includePublishedDate: true, filterByPublishedDate: false,
+  });
+  assert.deepEqual(Object.keys(searchParameters).sort(), ["query", ...Object.keys(options)].sort());
+  await client.search("test", options);
+  assert.deepEqual(requests.at(-1).body, {
+    query: "test", search_depth: "advanced", topic: "news", days: 3, max_results: 5,
+    include_images: true, include_image_descriptions: true, include_answer: "advanced",
+    include_raw_content: "markdown", include_domains: ["example.com"], exclude_domains: ["blocked.com"],
+    include_domains_mode: "prefer", time_range: "week", chunks_per_source: 2, country: "united states",
+    start_date: "2026-01-01", end_date: "2026-01-31", max_age_hours: 24, auto_parameters: false,
+    include_favicon: true, include_usage: true, exact_match: false, fetch_timeout: 10,
+    cache_fallback: false, language: "english", filter_by_language: true, safe_search: false,
+    include_published_date: true, filter_by_published_date: false,
+  });
+});
+
+test("Search preserves raw overrides independently of order and leaves unknown keys untouched", async () => {
+  for (const options of [
+    { safe_search: false, safeSearch: true },
+    { safeSearch: true, safe_search: false },
+  ]) {
+    await client.search("test", { ...options, futureCamelCase: { keepThisKey: true } });
+    assert.deepEqual(requests.at(-1).body, {
+      query: "test", safe_search: false, futureCamelCase: { keepThisKey: true },
+    });
+  }
+  await client.search("test", { safeSearch: true, safe_search: undefined });
+  assert.deepEqual(requests.at(-1).body, { query: "test" });
+  await client.search("test", { maxAgeHours: null, maxHours: 12 });
+  assert.deepEqual(requests.at(-1).body, { query: "test", max_age_hours: 12 });
+  await client.search("test", { maxHours: 12, max_age_hours: 0 });
+  assert.deepEqual(requests.at(-1).body, { query: "test", max_age_hours: 0 });
+});
+
 test("agent advertisement contains exactly the approved profile and no defaults", () => {
   const approved = ["query", "searchDepth", "timeRange", "exactMatch"];
   assert.deepEqual(Object.keys(searchAgentInputParams), approved);

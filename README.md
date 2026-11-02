@@ -157,11 +157,11 @@ this profile must not silently remove their existing public inputs. TypeBox,
 Convex, and Zod 3 consumers need an appropriate adapter or their own composition
 of the neutral definitions. Only Search currently has an approved profile.
 
-For maintainers, add Search request fields in `src/parameters.ts` and their wire
-mapping in `src/search.ts`. Types and schema exports derive from the field
-definitions; update `searchAgentInputParams` only for an approved agent interface
-change. Use the same separation for additional tools when their contracts are
-agreed. Transport-only settings and deprecated aliases stay in `src/types.ts`.
+For maintainers, define Search request fields once in `src/parameters.ts` using
+camelCase names. Types, validators, and snake_case request names derive from those
+definitions. Update `searchAgentInputParams` only for an approved agent interface
+change. Transport-only settings and deprecated aliases remain explicit in
+`src/types.ts` and `src/search.ts`; unknown request options pass through unchanged.
 
 Run `npm test` for loopback HTTP and schema regressions. `npm run test:package`
 also packs and installs temporary consumers to check ESM, CommonJS, declarations,
