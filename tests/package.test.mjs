@@ -63,6 +63,9 @@ test("packed ESM/CJS exports and declarations work with optional Zod absent and 
       const input: SearchAgentInput = { query: 'test', searchDepth: 'fast', exactMatch: false };
       const options: TavilySearchOptions = searchAgentInputSchema.parse(input);
       const inputType: z.input<typeof searchAgentInputSchema> = input;
+      const nullableInput: z.input<typeof searchAgentInputSchema> = { query: 'test', searchDepth: null, timeRange: null, exactMatch: null };
+      // @ts-expect-error Parsed output normalizes null to undefined.
+      const nullableOutput: SearchAgentInput = { query: 'test', searchDepth: null };
       // @ts-expect-error query is required.
       const missing: SearchAgentInput = {};
       // @ts-expect-error developer-only fields cannot enter the agent profile.
@@ -83,6 +86,10 @@ test("packed ESM/CJS exports and declarations work with optional Zod absent and 
         const { searchAgentInputJsonSchema } = await load('@tavily/core/parameters');
         const { z } = await load('zod/v4');
         assert.deepEqual(searchAgentInputSchema.parse({ query: 'test' }), { query: 'test' });
+        assert.deepEqual(
+          searchAgentInputSchema.parse({ query: 'test', searchDepth: null, timeRange: null, exactMatch: null }),
+          { query: 'test', searchDepth: undefined, timeRange: undefined, exactMatch: undefined }
+        );
         assert.deepEqual(z.toJSONSchema(searchAgentInputSchema), searchAgentInputJsonSchema);
       }
     })().catch(e => { console.error(e); process.exit(1); });`]);

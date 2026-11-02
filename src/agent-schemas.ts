@@ -36,15 +36,20 @@ export const searchParameterSchemas = Object.fromEntries(
 type AgentShape = {
   [K in keyof typeof searchAgentInputParams]: (typeof searchAgentInputParams)[K] extends "required"
     ? (typeof searchParameterSchemas)[K]
-    : z.ZodOptional<(typeof searchParameterSchemas)[K]>;
+    : z.ZodOptional<z.ZodType<
+        z.output<(typeof searchParameterSchemas)[K]> | undefined,
+        z.input<(typeof searchParameterSchemas)[K]> | null
+      >>;
 };
 
-/** Zod 4 tool input. Unknown keys are stripped; omitted options stay omitted. */
+/** Zod 4 tool input. Unknown keys are stripped; null options normalize to undefined. */
 export const searchAgentInputSchema = z.object(
   Object.fromEntries(
     Object.entries(searchAgentInputParams).map(([key, requirement]) => {
       const field = searchParameterSchemas[key as keyof typeof searchAgentInputParams];
-      return [key, requirement === "required" ? field : field.optional().describe(field.description!)];
+      return [key, requirement === "required" ? field : z.preprocess(
+        value => value === null ? undefined : value, field.optional()
+      ).optional().describe(field.description!)];
     })
   ) as AgentShape
 );

@@ -89,7 +89,8 @@ point. Zod 3 validators, including `zod/v3`, are not directly compatible.
 
 The approved Search input has required `query` and optional `searchDepth`,
 `timeRange`, and `exactMatch`. It preserves all SDK depth values and time aliases.
-It supplies no defaults and strips unknown keys when parsed. The JSON Schema
+It supplies no defaults, normalizes optional `null` inputs to `undefined`, and
+strips unknown keys when parsed. The JSON Schema
 advertises only those fields with `additionalProperties: false`; a JSON Schema
 validator may reject extras instead of stripping them. Individual field
 validators are required; call `.optional()` when composing an optional field.

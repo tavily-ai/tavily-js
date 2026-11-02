@@ -71,9 +71,12 @@ test("agent advertisement contains exactly the approved profile and no defaults"
   assert.deepEqual(z.toJSONSchema(searchAgentInputSchema), searchAgentInputJsonSchema);
   assert.deepEqual(searchAgentInputSchema.parse({ query: "test" }), { query: "test" });
   assert.deepEqual(searchAgentInputSchema.parse({ query: "test", safeSearch: true }), { query: "test" });
-  for (const input of [{}, { query: 1 }, { query: "test", searchDepth: "deep" },
-    { query: "test", timeRange: "hour" }, { query: "test", exactMatch: "false" },
-    { query: "test", searchDepth: null }]) {
+  assert.deepEqual(
+    searchAgentInputSchema.parse({ query: "test", searchDepth: null, timeRange: null, exactMatch: null }),
+    { query: "test", searchDepth: undefined, timeRange: undefined, exactMatch: undefined }
+  );
+  for (const input of [{}, { query: 1 }, { query: null }, { query: "test", searchDepth: "deep" },
+    { query: "test", timeRange: "hour" }, { query: "test", exactMatch: "false" }]) {
     assert.equal(searchAgentInputSchema.safeParse(input).success, false);
   }
 });
@@ -106,7 +109,9 @@ test("shared validators reuse descriptions, enum choices and numeric constraints
 
 test("wrapper composition preserves developer defaults and allows explicit false", async () => {
   const defaults = { searchDepth: "advanced", timeRange: "month", exactMatch: true, safeSearch: true };
-  for (const input of [{ query: "test" }, { query: "test", searchDepth: undefined }, { query: "test", exactMatch: false }]) {
+  for (const input of [{ query: "test" }, { query: "test", searchDepth: undefined },
+    { query: "test", searchDepth: null, timeRange: null, exactMatch: null },
+    { query: "test", searchDepth: null, timeRange: null, exactMatch: false }]) {
     const { query, ...overrides } = searchAgentInputSchema.parse(input);
     const definedOverrides = Object.fromEntries(Object.entries(overrides).filter(([, value]) => value !== undefined));
     await client.search(query, { ...defaults, ...definedOverrides });
@@ -115,4 +120,9 @@ test("wrapper composition preserves developer defaults and allows explicit false
       exact_match: input.exactMatch === false ? false : true, safe_search: true,
     });
   }
+  const { query, ...options } = searchAgentInputSchema.parse({
+    query: "test", searchDepth: null, timeRange: null, exactMatch: null,
+  });
+  await client.search(query, options);
+  assert.deepEqual(requests.at(-1).body, { query: "test" });
 });
