@@ -2,14 +2,10 @@ import { AxiosError, AxiosResponse } from "axios";
 import {
   TavilySearchOptions,
   TavilySearchFuncton,
-  TavilyQNASearchFuncton,
-  TavilyContextSearchFuncton,
   TavilyRequestConfig,
 } from "./types";
 import {
   post,
-  DEFAULT_MAX_TOKENS,
-  getMaxTokensFromList,
   handleRequestError,
   handleTimeoutError,
 } from "./utils";
@@ -152,130 +148,6 @@ export function _search(requestConfig: TavilyRequestConfig): TavilySearchFuncton
       if (err instanceof AxiosError) {
         if (err.code === "ECONNABORTED") {
           handleTimeoutError(requestTimeout);
-        }
-        if (err.response) {
-          handleRequestError(err.response as AxiosResponse);
-        }
-      }
-      throw new Error(
-        `An unexpected error occurred while making the request. Error: ${err}`
-      );
-    }
-  };
-}
-
-/**
- * @deprecated This function is deprecated and will be removed in a future version.
- * Use `search()` with `includeAnswer: true` instead:
- * 
- * @example
- * const result = await client.search(query, { includeAnswer: true });
- * const answer = result.answer;
- */
-export function _searchQNA(requestConfig: TavilyRequestConfig): TavilyQNASearchFuncton {
-  return async function searchQNA(
-    query: string,
-    options: TavilySearchOptions = {}
-  ) {
-    console.warn(
-      "searchQNA() is deprecated and will be removed in a future version. " +
-      "Use search() with includeAnswer: true instead."
-    );
-    
-    const requestTimeout = options?.timeout ?? 60; // Default to 60s
-
-    try {
-      const response = await post(
-        "search",
-        {
-          query,
-          search_depth: options.searchDepth ?? "advanced",
-          topic: options.topic,
-          days: options.days,
-          max_results: options.maxResults,
-          include_answer: true,
-          include_domains: options.includeDomains,
-          exclude_domains: options.excludeDomains,
-          chunks_per_source: options.chunksPerSource,
-          include_favicon: options.includeFavicon,
-        },
-        requestConfig,
-        requestTimeout
-      );
-
-      const answer = response.data.answer;
-
-      return answer;
-    } catch (err) {
-      if (err instanceof AxiosError) {
-        if (err.code === "ECONNABORTED") {
-          handleTimeoutError(requestTimeout);
-        }
-        if (err.response) {
-          handleRequestError(err.response as AxiosResponse);
-        }
-      }
-      throw new Error(
-        `An unexpected error occurred while making the request. Error: ${err}`
-      );
-    }
-  };
-}
-
-/**
- * @deprecated This function is deprecated and will be removed in a future version.
- * Use `search()` directly and process the results as needed:
- * 
- * @example
- * const result = await client.search(query, options);
- * const context = result.results.map(r => ({ url: r.url, content: r.content }));
- */
-export function _searchContext(requestConfig: TavilyRequestConfig): TavilyContextSearchFuncton {
-  return async function searchContext(
-    query: string,
-    options: TavilySearchOptions = {}
-  ) {
-    console.warn(
-      "searchContext() is deprecated and will be removed in a future version. " +
-      "Use search() directly and process the results as needed."
-    );
-    
-    const timeout = options?.timeout ?? 60; // Default to 60s
-
-    try {
-      const response = await post(
-        "search",
-        {
-          query,
-          search_depth: options.searchDepth,
-          topic: options.topic,
-          days: options.days,
-          max_results: options.maxResults,
-          include_domains: options.includeDomains,
-          exclude_domains: options.excludeDomains,
-          chunks_per_source: options.chunksPerSource,
-          include_favicon: options.includeFavicon,
-        },
-        requestConfig,
-        timeout
-      );
-
-      const sources = response.data?.results || [];
-
-      const context = sources.map((source: any) => {
-        return {
-          url: source.url,
-          content: source.content,
-        };
-      });
-
-      return JSON.stringify(
-        getMaxTokensFromList(context, options.maxTokens ?? DEFAULT_MAX_TOKENS)
-      );
-    } catch (err) {
-      if (err instanceof AxiosError) {
-        if (err.code === "ECONNABORTED") {
-          handleTimeoutError(timeout);
         }
         if (err.response) {
           handleRequestError(err.response as AxiosResponse);

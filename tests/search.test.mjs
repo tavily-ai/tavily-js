@@ -16,7 +16,11 @@ const server = createServer(async (req, res) => {
   for await (const chunk of req) body += chunk;
   requests.push({ body: JSON.parse(body), headers: req.headers, path: req.url });
   res.setHeader("Content-Type", "application/json");
-  res.end(JSON.stringify({ images: [], results: [], response_time: 0, request_id: "offline-test" }));
+  res.end(JSON.stringify({
+    images: [],
+    results: [{ title: "Test", url: "https://example.com", content: "Test content", score: 1 }],
+    answer: "Test answer", response_time: 0, request_id: "offline-test",
+  }));
 });
 let client;
 before(async () => {
@@ -44,7 +48,7 @@ test("Search retains extras, snake_case precedence, aliases, zero and per-call h
     safeSearch: true, safe_search: false,
     includePublishedDate: true, include_published_date: false,
     filterByPublishedDate: true, filter_by_published_date: false,
-    maxAgeHours: 0, maxHours: 12, maxTokens: 100,
+    maxAgeHours: 0, maxHours: 12,
     timeout: 5, sessionId: "session-test", humanId: "human-test", clientName: "client-test",
     future_option: { enabled: false },
   });
@@ -52,7 +56,7 @@ test("Search retains extras, snake_case precedence, aliases, zero and per-call h
   assert.deepEqual(request.body, {
     query: "test", search_depth: "ultra-fast", time_range: "d", max_results: 0,
     exact_match: false, safe_search: false, include_published_date: false,
-    filter_by_published_date: false, max_age_hours: 0, maxTokens: 100,
+    filter_by_published_date: false, max_age_hours: 0,
     future_option: { enabled: false },
   });
   assert.equal(request.headers["x-session-id"], "session-test");
@@ -125,4 +129,14 @@ test("wrapper composition preserves developer defaults and allows explicit false
   });
   await client.search(query, options);
   assert.deepEqual(requests.at(-1).body, { query: "test" });
+});
+
+test("Search supplies answers and context for migrated callers", async () => {
+  const result = await client.search("test", { searchDepth: "advanced", includeAnswer: true });
+  assert.deepEqual(requests.at(-1).body, {
+    query: "test", search_depth: "advanced", include_answer: true,
+  });
+  assert.equal(result.answer, "Test answer");
+  const context = JSON.stringify(result.results.map(({ url, content }) => ({ url, content })));
+  assert.deepEqual(JSON.parse(context), [{ url: "https://example.com", content: "Test content" }]);
 });

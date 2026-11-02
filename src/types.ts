@@ -5,24 +5,6 @@ export type TavilySearchFuncton = (
   options?: TavilySearchOptions
 ) => Promise<TavilySearchResponse>;
 
-/**
- * @deprecated This function is deprecated and will be removed in a future version.
- * Use `search()` with `includeAnswer: true` instead, which returns the answer in the response.
- */
-export type TavilyQNASearchFuncton = (
-  query: string,
-  options: TavilySearchOptions
-) => Promise<string>;
-
-/**
- * @deprecated This function is deprecated and will be removed in a future version.
- * Use `search()` directly and process the results as needed.
- */
-export type TavilyContextSearchFuncton = (
-  query: string,
-  options: TavilySearchOptions
-) => Promise<string>;
-
 export type TavilyExtractFunction = (
   urls: Array<string>,
   options?: TavilyExtractOptions
@@ -56,10 +38,6 @@ export type TavilyFeedbackFunction = (
 
 export type TavilyClient = {
   search: TavilySearchFuncton;
-  /** @deprecated Use `search()` with `includeAnswer: true` instead */
-  searchQNA: TavilyQNASearchFuncton;
-  /** @deprecated Use `search()` directly and process results as needed */
-  searchContext: TavilyContextSearchFuncton;
   extract: TavilyExtractFunction;
   crawl: TavilyCrawlFunction;
   map: TavilyMapFunction;
@@ -98,7 +76,6 @@ export type TavilyRequestConfig = {
 };
 
 export type TavilySearchOptions = Partial<Omit<SearchParameterValues, "query">> & {
-  maxTokens?: number;
   /** @deprecated Use maxAgeHours. */
   maxHours?: number;
   timeout?: number;

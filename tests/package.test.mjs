@@ -23,16 +23,31 @@ test("packed ESM/CJS exports and declarations work with optional Zod absent and 
     const plainRuntime = `
       const assert = require('node:assert/strict');
       assert.throws(() => require.resolve('zod'), { code: 'MODULE_NOT_FOUND' });
+      assert.throws(() => require.resolve('js-tiktoken'), { code: 'MODULE_NOT_FOUND' });
+      delete process.env.TAVILY_API_KEY;
       for (const load of [name => Promise.resolve(require(name)), name => import(name)]) {
         const core = await load('@tavily/core');
-        assert.equal(typeof core.tavily({ apiKey: 'offline-test' }).search, 'function');
+        for (const client of [core.tavily({ apiKey: 'offline-test' }), core.tavily()]) {
+          assert.equal(typeof client.search, 'function');
+          assert.equal(typeof client.extract, 'function');
+          assert.equal('searchQNA' in client, false);
+          assert.equal('searchContext' in client, false);
+        }
         const neutral = await load('@tavily/core/parameters');
         assert.equal(neutral.searchAgentInputJsonSchema.type, 'object');
       }
     `;
     run(process.execPath, ["-e", `(async () => { ${plainRuntime} })().catch(e => { console.error(e); process.exit(1); });`]);
     const plainTypes = `
-      import { tavily, type TavilySearchOptions } from '@tavily/core';
+      import { tavily, type TavilyClient, type TavilySearchOptions } from '@tavily/core';
+      // @ts-expect-error Removed in 1.0.
+      import type { TavilyQNASearchFuncton } from '@tavily/core';
+      // @ts-expect-error Removed in 1.0.
+      import type { TavilyContextSearchFuncton } from '@tavily/core';
+      // @ts-expect-error Removed in 1.0.
+      type RemovedQNA = TavilyClient['searchQNA'];
+      // @ts-expect-error Removed in 1.0.
+      type RemovedContext = TavilyClient['searchContext'];
       import { searchParameters } from '@tavily/core/parameters';
       const options: TavilySearchOptions = {
         searchDepth: 'ultra-fast', timeRange: 'd', safeSearch: false,

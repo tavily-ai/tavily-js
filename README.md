@@ -8,6 +8,32 @@ Tavily's JavaScript SDK allows for easy interaction with the Tavily API, offerin
 npm i @tavily/core
 ```
 
+## Migrating to 1.0
+
+Version 1.0 removes the deprecated `searchQNA()` and `searchContext()` methods
+and their `TavilyQNASearchFuncton` and `TavilyContextSearchFuncton` types.
+Use `search()` to request an answer or build context from the returned results:
+
+```javascript
+const { tavily } = require("@tavily/core");
+const client = tavily({ apiKey: process.env.TAVILY_API_KEY });
+const result = await client.search("Latest AI news", {
+  searchDepth: "advanced",
+  includeAnswer: true,
+});
+
+const answer = result.answer;
+const context = JSON.stringify(
+  result.results.map(({ url, content }) => ({ url, content }))
+);
+```
+
+The explicit `searchDepth: "advanced"` preserves the old Q&A helper's default;
+keep any other depth you previously configured. For context-only calls, omit
+`includeAnswer`. The SDK no longer provides `searchContext()`'s `maxTokens`
+truncation (previously 4,000 tokens by default); apply any required token budget
+in your application before passing context to a model.
+
 # Tavily Search
 
 Connect your LLM to the web using the Tavily Search API. Tavily Search is a powerful search engine tailored for use by LLMs in agentic applications.
