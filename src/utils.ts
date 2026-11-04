@@ -49,7 +49,7 @@ export async function post(
   const { proxies, apiBaseURL } = requestConfig;
   const requestTimeout = endpoint === "research" ? timeout : timeout ?? 60; // Research endpoint has no default timeout
 
-  const url = `${apiBaseURL || BASE_URL}/${endpoint}`;
+  const url = `${(apiBaseURL || BASE_URL).replace(/\/+$/, "")}/${endpoint}`;
   const headers = buildHeaders(requestConfig);
 
   const config: AxiosRequestConfig = { headers };
@@ -83,7 +83,7 @@ export async function get(
   params?: Record<string, unknown>
 ): Promise<AxiosResponse> {
   const { proxies, apiBaseURL } = requestConfig;
-  const url = `${apiBaseURL || BASE_URL}/${endpoint}`;
+  const url = `${(apiBaseURL || BASE_URL).replace(/\/+$/, "")}/${endpoint}`;
   const headers = buildHeaders(requestConfig);
 
   const requestTimeout = endpoint.includes("research") ? timeout : timeout ?? 60; // Research endpoint has no default timeout
