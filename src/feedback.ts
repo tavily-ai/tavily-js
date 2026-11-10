@@ -1,15 +1,15 @@
 import {
   TavilyFeedbackOptions,
   TavilyFeedbackFunction,
-  TavilyRequestConfig,
 } from "./types";
-import { createTransport } from "./transport";
+import { TavilyTransport } from "./transport";
+import { identityHeaders } from "./headers";
 
-export function _feedback(requestConfig: TavilyRequestConfig): TavilyFeedbackFunction {
+export function _feedback(transport: TavilyTransport): TavilyFeedbackFunction {
   return async function feedback(options: TavilyFeedbackOptions) {
     // sessionId here is the past search session being reviewed (request body field
     // session_id), not the calling session tracked by X-Session-Id — unlike every
-    // other method, it is intentionally NOT merged into callConfig below.
+    // other method, it is intentionally NOT sent as a header below.
     const {
       sessionId,
       requestId,
@@ -29,13 +29,8 @@ export function _feedback(requestConfig: TavilyRequestConfig): TavilyFeedbackFun
     } = options;
 
     const requestTimeout = timeout ?? 10; // /feedback is a lightweight write (no search/crawl work), default to 10s
-    const callConfig: TavilyRequestConfig = {
-      ...requestConfig,
-      ...(humanId !== undefined && { humanId }),
-      ...(clientName !== undefined && { clientName }),
-    };
 
-    const data: any = await createTransport(callConfig).post(
+    const data: any = await transport.post(
       "feedback",
       {
         session_id: sessionId,
@@ -57,7 +52,7 @@ export function _feedback(requestConfig: TavilyRequestConfig): TavilyFeedbackFun
         })),
         ...kwargs,
       },
-      { timeoutSeconds: requestTimeout }
+      { timeoutSeconds: requestTimeout, headers: identityHeaders({ humanId, clientName }) }
     );
 
     return {

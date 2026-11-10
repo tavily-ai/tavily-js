@@ -1,11 +1,11 @@
 import {
   TavilyMapOptions,
   TavilyMapFunction,
-  TavilyRequestConfig,
 } from "./types";
-import { createTransport } from "./transport";
+import { TavilyTransport } from "./transport";
+import { identityHeaders } from "./headers";
 
-export function _map(requestConfig: TavilyRequestConfig): TavilyMapFunction {
+export function _map(transport: TavilyTransport): TavilyMapFunction {
   return async function map(
     url: string,
     options: Partial<TavilyMapOptions> = {}
@@ -29,14 +29,8 @@ export function _map(requestConfig: TavilyRequestConfig): TavilyMapFunction {
     } = options;
 
     const requestTimeout = timeout ?? 150; // Default to 150s
-    const callConfig: TavilyRequestConfig = {
-      ...requestConfig,
-      ...(sessionId !== undefined && { sessionId }),
-      ...(humanId !== undefined && { humanId }),
-      ...(clientName !== undefined && { clientName }),
-    };
 
-    const data: any = await createTransport(callConfig).post(
+    const data: any = await transport.post(
       "map",
       {
         url: url,
@@ -53,7 +47,7 @@ export function _map(requestConfig: TavilyRequestConfig): TavilyMapFunction {
         include_usage: includeUsage,
         ...kwargs,
       },
-      { timeoutSeconds: requestTimeout }
+      { timeoutSeconds: requestTimeout, headers: identityHeaders({ sessionId, humanId, clientName }) }
     );
 
     return {

@@ -7,6 +7,7 @@ export type TavilyContinuationPath = {
   type: "signup" | "agentic_payment" | "bonus_credits";
   resource?: string;
   instruction?: string;
+  eligible?: boolean;
   [key: string]: unknown;
 };
 
@@ -49,7 +50,8 @@ export function isKeylessLimitEnvelope(data: any): boolean {
     typeof data === "object" &&
     data.error &&
     typeof data.error === "object" &&
-    typeof data.error.code === "string"
+    typeof data.error.code === "string" &&
+    Array.isArray(data.error.next_actions)
   );
 }
 
@@ -79,7 +81,7 @@ export function keylessLimitErrorFromEnvelope(
 
 /**
  * Thrown for any non-2xx Tavily API response other than a keyless-limit
- * envelope in keyless mode. Carries the HTTP status and the parsed body.
+ * envelope. Carries the HTTP status and the parsed body.
  */
 export class TavilyRequestError extends Error {
   public readonly status: number;

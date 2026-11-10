@@ -73,22 +73,34 @@ test("432 rejects with TavilyRequestError carrying status, body and docs", async
   });
 });
 
-test("keyless envelope: TavilyRequestError when keyed, TavilyKeylessLimitError when keyless", async () => {
+test("keyless-limit envelope rejects with TavilyKeylessLimitError in keyed and keyless mode", async () => {
   const envelope = {
-    error: { code: "keyless_hourly_cap", message: "Cap hit", window: "hour", retry_after_seconds: 5 },
+    error: {
+      code: "keyless_hourly_cap", message: "Cap hit", window: "hour", retry_after_seconds: 5,
+      next_actions: [{ type: "bonus_credits", eligible: true }],
+    },
   };
-  const keyed = createTransport({ apiKey: "k", adapter: stub(429, envelope) });
-  await assert.rejects(keyed.post("search", {}), (err) => {
+  for (const options of [{ apiKey: "k" }, {}]) {
+    const t = createTransport({ ...options, adapter: stub(429, envelope) });
+    await assert.rejects(t.post("search", {}), (err) => {
+      assert.ok(err instanceof TavilyKeylessLimitError);
+      assert.equal(err.capType, "keyless_hourly_cap");
+      assert.equal(err.window, "hour");
+      assert.equal(err.retryAfter, 5);
+      assert.equal(err.bonusEligible, true);
+      return true;
+    });
+  }
+});
+
+test("keyless 400 with an error.message body rejects with TavilyRequestError, not a cap", async () => {
+  const body = { error: { code: "invalid_request", message: "bad" } };
+  const t = createTransport({ adapter: stub(400, body) });
+  await assert.rejects(t.post("search", {}), (err) => {
     assert.ok(err instanceof TavilyRequestError);
-    assert.equal(err.status, 429);
-    return true;
-  });
-  const keyless = createTransport({ adapter: stub(429, envelope) });
-  await assert.rejects(keyless.post("search", {}), (err) => {
-    assert.ok(err instanceof TavilyKeylessLimitError);
-    assert.equal(err.capType, "keyless_hourly_cap");
-    assert.equal(err.window, "hour");
-    assert.equal(err.retryAfter, 5);
+    assert.equal(err.status, 400);
+    assert.equal(err.message, "bad");
+    assert.deepEqual(err.body, body);
     return true;
   });
 });

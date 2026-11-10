@@ -17,8 +17,12 @@
 - `TavilyContinuationPath` is now typed as the API sends it:
   `{ type: "signup" | "agentic_payment" | "bonus_credits"; resource?: string; instruction?: string }`.
   The `url` and `details` fields were never sent.
-- A keyless-limit response received in keyed mode now throws `TavilyRequestError` instead of
-  `TavilyKeylessLimitError`, which is thrown only in keyless mode.
+- A keyless-limit envelope is recognized only when `error.code` is a string and
+  `error.next_actions` is an array, so other `{ error: { code } }` bodies (for example a 400
+  validation error) throw `TavilyRequestError` instead of `TavilyKeylessLimitError`.
+- Error messages are unchanged from 1.0.0, except that bodies of the form
+  `{ error: { message } }` now surface `error.message` instead of the JSON dump.
+- `npm test` now runs `npm run typecheck` (`tsc --noEmit`) before building.
 - Keyless mode now honors `clientSource` for `X-Client-Source`; the default stays
   `tavily-js-keyless`.
 - Streaming research errors now carry the parsed error body instead of an unread stream.

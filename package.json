@@ -53,7 +53,8 @@
   },
   "scripts": {
     "build": "tsup",
-    "test": "npm run build && node --test tests/search.test.mjs tests/transport.test.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "npm run typecheck && npm run build && node --test tests/search.test.mjs tests/transport.test.mjs",
     "test:package": "npm run build && node --test tests/package.test.mjs",
     "prepublishOnly": "npm run build"
   },

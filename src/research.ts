@@ -3,13 +3,13 @@ import {
   TavilyResearchFunction,
   TavilyGetResearchFunction,
   TavilyGetResearchOptions,
-  TavilyRequestConfig,
   TavilyGetResearchIncompleteStatusResponse,
   TavilyGetResearchResponse,
 } from "./types";
-import { createTransport } from "./transport";
+import { TavilyTransport } from "./transport";
+import { identityHeaders } from "./headers";
 
-export function _research(requestConfig: TavilyRequestConfig): TavilyResearchFunction {
+export function _research(transport: TavilyTransport): TavilyResearchFunction {
   return async function research(
     input: string,
     options: Partial<TavilyResearchOptions> = {}
@@ -17,14 +17,7 @@ export function _research(requestConfig: TavilyRequestConfig): TavilyResearchFun
     const { model, outputSchema, stream, citationFormat, timeout, sessionId, humanId, clientName, ...kwargs } =
       options;
 
-    const callConfig: TavilyRequestConfig = {
-      ...requestConfig,
-      ...(sessionId !== undefined && { sessionId }),
-      ...(humanId !== undefined && { humanId }),
-      ...(clientName !== undefined && { clientName }),
-    };
-    const transport = createTransport(callConfig);
-
+    const opts = { timeoutSeconds: timeout, headers: identityHeaders({ sessionId, humanId, clientName }) };
     const body = {
       input,
       model,
@@ -35,10 +28,10 @@ export function _research(requestConfig: TavilyRequestConfig): TavilyResearchFun
     };
 
     if (stream) {
-      return transport.stream("research", body, { timeoutSeconds: timeout });
+      return transport.stream("research", body, opts);
     }
 
-    const data: any = await transport.post("research", body, { timeoutSeconds: timeout });
+    const data: any = await transport.post("research", body, opts);
 
     return {
       requestId: data.request_id,
@@ -51,14 +44,14 @@ export function _research(requestConfig: TavilyRequestConfig): TavilyResearchFun
   };
 }
 
-export function _getResearch(requestConfig: TavilyRequestConfig): TavilyGetResearchFunction {
+export function _getResearch(transport: TavilyTransport): TavilyGetResearchFunction {
   return async function getResearch(
     requestId: string,
     options: TavilyGetResearchOptions = {}
   ) {
     const { includeUsage } = options;
 
-    const data = await createTransport(requestConfig).get(`research/${requestId}`, {
+    const data = await transport.get(`research/${requestId}`, {
       timeoutSeconds: 60, // Default timeout for GET requests
       params: { include_usage: includeUsage },
     });

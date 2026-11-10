@@ -1,4 +1,5 @@
-import { TavilyClientOptions, TavilyClient, TavilyRequestConfig } from "./types";
+import { TavilyClientOptions, TavilyClient } from "./types";
+import { createTransport } from "./transport";
 import { _search } from "./search";
 import { _extract } from "./extract";
 import { _crawl } from "./crawl";
@@ -15,15 +16,12 @@ function makeKeylessUnsupported(methodName: string): (...args: any[]) => never {
 }
 
 export function tavily(options: TavilyClientOptions = {}): TavilyClient {
-  const requestConfig: TavilyRequestConfig = {
-    ...options,
-    apiKey: options.apiKey || process.env.TAVILY_API_KEY,
-  };
+  const transport = createTransport(options);
 
-  if (!requestConfig.apiKey) {
+  if (!(options.apiKey || process.env.TAVILY_API_KEY)) {
     return {
-      search: _search(requestConfig),
-      extract: _extract(requestConfig),
+      search: _search(transport),
+      extract: _extract(transport),
       crawl: makeKeylessUnsupported("crawl") as TavilyClient["crawl"],
       map: makeKeylessUnsupported("map") as TavilyClient["map"],
       research: makeKeylessUnsupported("research") as TavilyClient["research"],
@@ -35,12 +33,12 @@ export function tavily(options: TavilyClientOptions = {}): TavilyClient {
   }
 
   return {
-    search: _search(requestConfig),
-    extract: _extract(requestConfig),
-    crawl: _crawl(requestConfig),
-    map: _map(requestConfig),
-    research: _research(requestConfig),
-    getResearch: _getResearch(requestConfig),
-    feedback: _feedback(requestConfig),
+    search: _search(transport),
+    extract: _extract(transport),
+    crawl: _crawl(transport),
+    map: _map(transport),
+    research: _research(transport),
+    getResearch: _getResearch(transport),
+    feedback: _feedback(transport),
   };
 }

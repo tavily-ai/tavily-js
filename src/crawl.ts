@@ -1,11 +1,11 @@
 import {
   TavilyCrawlOptions,
   TavilyCrawlFunction,
-  TavilyRequestConfig,
 } from "./types";
-import { createTransport } from "./transport";
+import { TavilyTransport } from "./transport";
+import { identityHeaders } from "./headers";
 
-export function _crawl(requestConfig: TavilyRequestConfig): TavilyCrawlFunction {
+export function _crawl(transport: TavilyTransport): TavilyCrawlFunction {
   return async function crawl(
     url: string,
     options: Partial<TavilyCrawlOptions> = {}
@@ -34,14 +34,8 @@ export function _crawl(requestConfig: TavilyRequestConfig): TavilyCrawlFunction 
     } = options;
 
     const requestTimeout = timeout ?? 150; // Default to 150s
-    const callConfig: TavilyRequestConfig = {
-      ...requestConfig,
-      ...(sessionId !== undefined && { sessionId }),
-      ...(humanId !== undefined && { humanId }),
-      ...(clientName !== undefined && { clientName }),
-    };
 
-    const data: any = await createTransport(callConfig).post(
+    const data: any = await transport.post(
       "crawl",
       {
         url: url,
@@ -63,7 +57,7 @@ export function _crawl(requestConfig: TavilyRequestConfig): TavilyCrawlFunction 
         chunks_per_source: chunksPerSource,
         ...kwargs,
       },
-      { timeoutSeconds: requestTimeout }
+      { timeoutSeconds: requestTimeout, headers: identityHeaders({ sessionId, humanId, clientName }) }
     );
 
     return {

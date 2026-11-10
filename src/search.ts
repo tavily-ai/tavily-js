@@ -2,9 +2,9 @@ import { searchParameters } from "./parameters";
 import {
   TavilySearchOptions,
   TavilySearchFuncton,
-  TavilyRequestConfig,
 } from "./types";
-import { createTransport } from "./transport";
+import { TavilyTransport } from "./transport";
+import { identityHeaders } from "./headers";
 
 // Map declared Search fields only; explicit API names and unknown extras win.
 function serializeSearchParameters(parameters: Record<string, unknown>) {
@@ -18,7 +18,7 @@ function serializeSearchParameters(parameters: Record<string, unknown>) {
   return { ...body, ...extras };
 }
 
-export function _search(requestConfig: TavilyRequestConfig): TavilySearchFuncton {
+export function _search(transport: TavilyTransport): TavilySearchFuncton {
   return async function search(
     query: string,
     options: Partial<TavilySearchOptions> = {}
@@ -26,21 +26,15 @@ export function _search(requestConfig: TavilyRequestConfig): TavilySearchFuncton
     const { maxHours, timeout, sessionId, humanId, clientName, ...parameters } = options;
 
     const requestTimeout = timeout ?? 60; // Default to 60s
-    const callConfig: TavilyRequestConfig = {
-      ...requestConfig,
-      ...(sessionId !== undefined && { sessionId }),
-      ...(humanId !== undefined && { humanId }),
-      ...(clientName !== undefined && { clientName }),
-    };
 
-    const data: any = await createTransport(callConfig).post(
+    const data: any = await transport.post(
       "search",
       serializeSearchParameters({
         query,
         ...parameters,
         maxAgeHours: parameters.maxAgeHours ?? maxHours,
       }),
-      { timeoutSeconds: requestTimeout }
+      { timeoutSeconds: requestTimeout, headers: identityHeaders({ sessionId, humanId, clientName }) }
     );
 
     return {

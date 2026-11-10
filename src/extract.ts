@@ -1,11 +1,11 @@
 import {
   TavilyExtractOptions,
   TavilyExtractFunction,
-  TavilyRequestConfig,
 } from "./types";
-import { createTransport } from "./transport";
+import { TavilyTransport } from "./transport";
+import { identityHeaders } from "./headers";
 
-export function _extract(requestConfig: TavilyRequestConfig): TavilyExtractFunction {
+export function _extract(transport: TavilyTransport): TavilyExtractFunction {
   return async function extract(
     urls: Array<string>,
     options: Partial<TavilyExtractOptions> = {}
@@ -13,14 +13,8 @@ export function _extract(requestConfig: TavilyRequestConfig): TavilyExtractFunct
     const { includeImages, extractDepth, format, timeout, includeFavicon, includeUsage, query, chunksPerSource, sessionId, humanId, clientName, ...kwargs } = options;
 
     const requestTimeout = timeout ?? 30; // Default to 30s
-    const callConfig: TavilyRequestConfig = {
-      ...requestConfig,
-      ...(sessionId !== undefined && { sessionId }),
-      ...(humanId !== undefined && { humanId }),
-      ...(clientName !== undefined && { clientName }),
-    };
 
-    const data: any = await createTransport(callConfig).post(
+    const data: any = await transport.post(
       "extract",
       {
         urls,
@@ -34,7 +28,7 @@ export function _extract(requestConfig: TavilyRequestConfig): TavilyExtractFunct
         chunks_per_source: chunksPerSource,
         ...kwargs,
       },
-      { timeoutSeconds: requestTimeout }
+      { timeoutSeconds: requestTimeout, headers: identityHeaders({ sessionId, humanId, clientName }) }
     );
 
     return {

@@ -10,21 +10,16 @@ import {
 
 const BASE_URL = "https://api.tavily.com";
 
+type RequestOpts = { timeoutSeconds?: number; headers?: Record<string, string> };
+
 export type TavilyTransport = {
-  post(
-    endpoint: string,
-    body: Record<string, unknown>,
-    opts?: { timeoutSeconds?: number }
-  ): Promise<unknown>;
-  get(
-    endpoint: string,
-    opts?: { timeoutSeconds?: number; params?: Record<string, unknown> }
-  ): Promise<unknown>;
+  post(endpoint: string, body: Record<string, unknown>, opts?: RequestOpts): Promise<unknown>;
+  get(endpoint: string, opts?: RequestOpts & { params?: Record<string, unknown> }): Promise<unknown>;
   stream(
     endpoint: string,
     body: Record<string, unknown>,
-    opts?: { timeoutSeconds?: number }
-  ): Promise<AsyncIterable<Buffer>>;
+    opts?: RequestOpts
+  ): Promise<AsyncGenerator<Buffer, void, unknown>>;
 };
 
 async function readBody(stream: Readable): Promise<unknown> {
@@ -38,7 +33,7 @@ async function readBody(stream: Readable): Promise<unknown> {
   }
 }
 
-async function* chunks(stream: Readable): AsyncGenerator<Buffer> {
+async function* chunks(stream: Readable): AsyncGenerator<Buffer, void, unknown> {
   try {
     yield* stream;
   } finally {
@@ -49,7 +44,8 @@ async function* chunks(stream: Readable): AsyncGenerator<Buffer> {
 /**
  * Authenticated access to the Tavily API. `post`, `get`, and `stream` resolve with the
  * response body untouched. Non-2xx responses reject with `TavilyRequestError`, or with
- * `TavilyKeylessLimitError` for a keyless-limit envelope in keyless mode.
+ * `TavilyKeylessLimitError` for a keyless-limit envelope. Per-request `headers` are merged
+ * over the transport's own.
  */
 export function createTransport(
   options: TavilyClientOptions & { adapter?: AxiosAdapter } = {}
@@ -58,6 +54,8 @@ export function createTransport(
   const baseURL = options.apiBaseURL || BASE_URL;
   const httpProxy = options.proxies?.http || process.env.TAVILY_HTTP_PROXY;
   const httpsProxy = options.proxies?.https || process.env.TAVILY_HTTPS_PROXY;
+  const httpAgent = httpProxy ? new HttpsProxyAgent(httpProxy) : undefined;
+  const httpsAgent = httpsProxy ? new HttpsProxyAgent(httpsProxy) : undefined;
   const projectId = options.projectId || process.env.TAVILY_PROJECT;
   const orgId = options.orgId || process.env.TAVILY_ORG_ID;
 
@@ -81,12 +79,18 @@ export function createTransport(
       return new Error(`An unexpected error occurred while making the request. Error: ${err}`);
     }
     const { status } = err.response;
-    const body: any =
-      err.response.data instanceof Readable ? await readBody(err.response.data) : err.response.data;
-    if (!apiKey && isKeylessLimitEnvelope(body)) {
+    let body: any = err.response.data;
+    if (body instanceof Readable) {
+      try {
+        body = await readBody(body);
+      } catch {
+        body = undefined;
+      }
+    }
+    if (isKeylessLimitEnvelope(body)) {
       return keylessLimitErrorFromEnvelope(body);
     }
-    const message = body?.detail?.error;
+    const message = body?.detail?.error ?? body?.error?.message;
     const docs = body?.documentation;
     return new TavilyRequestError({
       message:
@@ -100,19 +104,19 @@ export function createTransport(
   async function send(
     endpoint: string,
     request: AxiosRequestConfig,
-    timeoutSeconds?: number
+    opts: RequestOpts = {}
   ): Promise<AxiosResponse> {
     // Research endpoints have no default timeout.
-    const timeout = endpoint.includes("research") ? timeoutSeconds : timeoutSeconds ?? 60;
+    const timeout = endpoint.includes("research") ? opts.timeoutSeconds : opts.timeoutSeconds ?? 60;
     const config: AxiosRequestConfig = {
       ...request,
       url: `${baseURL}/${endpoint}`,
-      headers,
+      headers: { ...headers, ...opts.headers },
       adapter: options.adapter,
+      httpAgent,
+      httpsAgent,
     };
     if (timeout !== undefined) config.timeout = timeout * 1000;
-    if (httpProxy) config.httpAgent = new HttpsProxyAgent(httpProxy);
-    if (httpsProxy) config.httpsAgent = new HttpsProxyAgent(httpsProxy);
     try {
       return await axios.request(config);
     } catch (err) {
@@ -122,17 +126,16 @@ export function createTransport(
 
   return {
     async post(endpoint, body, opts) {
-      return (await send(endpoint, { method: "post", data: body }, opts?.timeoutSeconds)).data;
+      return (await send(endpoint, { method: "post", data: body }, opts)).data;
     },
     async get(endpoint, opts) {
-      return (await send(endpoint, { method: "get", params: opts?.params }, opts?.timeoutSeconds))
-        .data;
+      return (await send(endpoint, { method: "get", params: opts?.params }, opts)).data;
     },
     async stream(endpoint, body, opts) {
       const response = await send(
         endpoint,
         { method: "post", data: body, responseType: "stream" },
-        opts?.timeoutSeconds
+        opts
       );
       return chunks(response.data);
     },
