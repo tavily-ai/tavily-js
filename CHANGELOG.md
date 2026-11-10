@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.1.0
+
+### Added
+
+- `createTransport(options)` and the `TavilyTransport` type: authenticated `post`, `get`, and
+  `stream` calls that resolve with the raw, untouched response body. Handles credentials,
+  keyless mode, identity headers, proxies, base URL, and timeouts. The typed client methods now
+  use it.
+- `TavilyRequestError`, thrown for non-2xx responses, with `status`, `body`, and `docs`
+  (the `documentation` URL from the response, when present).
+- `TavilyKeylessLimitError.window`: the cap window from the keyless-limit envelope, or `null`.
+
+### Changed
+
+- `TavilyContinuationPath` is now typed as the API sends it:
+  `{ type: "signup" | "agentic_payment" | "bonus_credits"; resource?: string; instruction?: string }`.
+  The `url` and `details` fields were never sent.
+- A keyless-limit response received in keyed mode now throws `TavilyRequestError` instead of
+  `TavilyKeylessLimitError`, which is thrown only in keyless mode.
+- Keyless mode now honors `clientSource` for `X-Client-Source`; the default stays
+  `tavily-js-keyless`.
+- Streaming research errors now carry the parsed error body instead of an unread stream.
+
 ## 1.0.0 (unreleased)
 
 ### Added

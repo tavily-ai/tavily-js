@@ -2,28 +2,13 @@
  * Error types thrown by the Tavily SDK.
  */
 
-export type TavilyContinuationPath =
-  | {
-      type: "agentic_payment";
-      scheme?: string;
-      details?: string;
-      [key: string]: any;
-    }
-  | {
-      type: "signup";
-      url?: string;
-      [key: string]: any;
-    }
-  | {
-      type: "bonus_credits";
-      eligible?: boolean;
-      endpoint?: string;
-      questions?: string[];
-      credits_on_completion?: number;
-      reason?: string;
-      [key: string]: any;
-    }
-  | { type: string; [key: string]: any };
+/** An entry of the keyless-limit envelope's `next_actions`, as the API sends it. */
+export type TavilyContinuationPath = {
+  type: "signup" | "agentic_payment" | "bonus_credits";
+  resource?: string;
+  instruction?: string;
+  [key: string]: unknown;
+};
 
 /**
  * Thrown when a keyless request is rejected by the Tavily API — for example
@@ -35,6 +20,8 @@ export class TavilyKeylessLimitError extends Error {
   public readonly retryAfter: number | null;
   public readonly bonusEligible: boolean;
   public readonly continuationPaths: TavilyContinuationPath[];
+  /** The cap's window as the API names it (for example "hour"), or null when absent. */
+  public readonly window: string | null;
 
   constructor(params: {
     message: string;
@@ -42,6 +29,7 @@ export class TavilyKeylessLimitError extends Error {
     retryAfter: number | null;
     bonusEligible: boolean;
     continuationPaths: TavilyContinuationPath[];
+    window?: string | null;
   }) {
     super(params.message);
     this.name = "TavilyKeylessLimitError";
@@ -49,6 +37,7 @@ export class TavilyKeylessLimitError extends Error {
     this.retryAfter = params.retryAfter;
     this.bonusEligible = params.bonusEligible;
     this.continuationPaths = params.continuationPaths;
+    this.window = params.window ?? null;
 
     Object.setPrototypeOf(this, TavilyKeylessLimitError.prototype);
   }
@@ -84,5 +73,31 @@ export function keylessLimitErrorFromEnvelope(
         : null,
     bonusEligible,
     continuationPaths: nextActions,
+    window: typeof err.window === "string" ? err.window : null,
   });
+}
+
+/**
+ * Thrown for any non-2xx Tavily API response other than a keyless-limit
+ * envelope in keyless mode. Carries the HTTP status and the parsed body.
+ */
+export class TavilyRequestError extends Error {
+  public readonly status: number;
+  public readonly body: unknown;
+  public readonly docs?: string;
+
+  constructor(params: {
+    message: string;
+    status: number;
+    body: unknown;
+    docs?: string;
+  }) {
+    super(params.message);
+    this.name = "TavilyRequestError";
+    this.status = params.status;
+    this.body = params.body;
+    this.docs = params.docs;
+
+    Object.setPrototypeOf(this, TavilyRequestError.prototype);
+  }
 }

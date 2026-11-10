@@ -3,8 +3,7 @@ import {
   TavilyMapFunction,
   TavilyRequestConfig,
 } from "./types";
-import { post, handleRequestError, handleTimeoutError } from "./utils";
-import { AxiosError, AxiosResponse } from "axios";
+import { createTransport } from "./transport";
 
 export function _map(requestConfig: TavilyRequestConfig): TavilyMapFunction {
   return async function map(
@@ -37,47 +36,32 @@ export function _map(requestConfig: TavilyRequestConfig): TavilyMapFunction {
       ...(clientName !== undefined && { clientName }),
     };
 
-    try {
-      const response = await post(
-        "map",
-        {
-          url: url,
-          max_depth: maxDepth,
-          max_breadth: maxBreadth,
-          limit,
-          select_paths: selectPaths,
-          select_domains: selectDomains,
-          exclude_paths: excludePaths,
-          exclude_domains: excludeDomains,
-          allow_external: allowExternal,
-          instructions,
-          timeout,
-          include_usage: includeUsage,
-          ...kwargs,
-        },
-        callConfig,
-        requestTimeout
-      );
+    const data: any = await createTransport(callConfig).post(
+      "map",
+      {
+        url: url,
+        max_depth: maxDepth,
+        max_breadth: maxBreadth,
+        limit,
+        select_paths: selectPaths,
+        select_domains: selectDomains,
+        exclude_paths: excludePaths,
+        exclude_domains: excludeDomains,
+        allow_external: allowExternal,
+        instructions,
+        timeout,
+        include_usage: includeUsage,
+        ...kwargs,
+      },
+      { timeoutSeconds: requestTimeout }
+    );
 
-      return {
-        responseTime: response.data.response_time,
-        baseUrl: response.data.base_url,
-        results: response.data.results,
-        requestId: response.data.request_id,
-        ...(response.data.usage !== undefined && { usage: response.data.usage }),
-      };
-    } catch (err) {
-      if (err instanceof AxiosError) {
-        if (err.code === "ECONNABORTED") {
-          handleTimeoutError(requestTimeout);
-        }
-        if (err.response) {
-          handleRequestError(err.response as AxiosResponse);
-        }
-      }
-      throw new Error(
-        `An unexpected error occurred while making the request. Error: ${err}`
-      );
-    }
+    return {
+      responseTime: data.response_time,
+      baseUrl: data.base_url,
+      results: data.results,
+      requestId: data.request_id,
+      ...(data.usage !== undefined && { usage: data.usage }),
+    };
   };
 }
