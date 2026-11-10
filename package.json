@@ -79,7 +79,7 @@
   },
   "dependencies": {
     "axios": "^1.7.7",
-    "https-proxy-agent": "^7.0.6"
+    "https-proxy-agent": "^9.1.0"
   },
   "peerDependencies": {
     "zod": "^4.0.0"
