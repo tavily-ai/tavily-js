@@ -1,12 +1,19 @@
 import {
   TavilyCrawlOptions,
   TavilyCrawlFunction,
-  TavilyRequestConfig,
 } from "./types";
-import { post, handleRequestError, handleTimeoutError } from "./utils";
-import { AxiosError, AxiosResponse } from "axios";
+import { TavilyTransport } from "./transport";
+import { identityHeaders } from "./headers";
 
-export function _crawl(requestConfig: TavilyRequestConfig): TavilyCrawlFunction {
+type RawCrawl = {
+  response_time: number;
+  base_url: string;
+  results: Array<{ url: string; raw_content: string; images: string[]; favicon?: string }>;
+  request_id: string;
+  usage?: { credits: number };
+};
+
+export function _crawl(transport: TavilyTransport): TavilyCrawlFunction {
   return async function crawl(
     url: string,
     options: Partial<TavilyCrawlOptions> = {}
@@ -35,66 +42,45 @@ export function _crawl(requestConfig: TavilyRequestConfig): TavilyCrawlFunction 
     } = options;
 
     const requestTimeout = timeout ?? 150; // Default to 150s
-    const callConfig: TavilyRequestConfig = {
-      ...requestConfig,
-      ...(sessionId !== undefined && { sessionId }),
-      ...(humanId !== undefined && { humanId }),
-      ...(clientName !== undefined && { clientName }),
+
+    const data = await transport.post<RawCrawl>(
+      "crawl",
+      {
+        url: url,
+        max_depth: maxDepth,
+        max_breadth: maxBreadth,
+        limit,
+        extract_depth: extractDepth,
+        select_paths: selectPaths,
+        select_domains: selectDomains,
+        exclude_paths: excludePaths,
+        exclude_domains: excludeDomains,
+        allow_external: allowExternal,
+        include_images: includeImages,
+        instructions,
+        format,
+        timeout,
+        include_favicon: includeFavicon,
+        include_usage: includeUsage,
+        chunks_per_source: chunksPerSource,
+        ...kwargs,
+      },
+      { timeoutSeconds: requestTimeout, headers: identityHeaders({ sessionId, humanId, clientName }) }
+    );
+
+    return {
+      responseTime: data.response_time,
+      baseUrl: data.base_url,
+      results: data.results.map((item) => {
+        return {
+          url: item.url,
+          rawContent: item.raw_content,
+          images: item.images,
+          favicon: item.favicon,
+        };
+      }),
+      requestId: data.request_id,
+      ...(data.usage !== undefined && { usage: data.usage }),
     };
-
-    try {
-      const response = await post(
-        "crawl",
-        {
-          url: url,
-          max_depth: maxDepth,
-          max_breadth: maxBreadth,
-          limit,
-          extract_depth: extractDepth,
-          select_paths: selectPaths,
-          select_domains: selectDomains,
-          exclude_paths: excludePaths,
-          exclude_domains: excludeDomains,
-          allow_external: allowExternal,
-          include_images: includeImages,
-          instructions,
-          format,
-          timeout,
-          include_favicon: includeFavicon,
-          include_usage: includeUsage,
-          chunks_per_source: chunksPerSource,
-          ...kwargs,
-        },
-        callConfig,
-        requestTimeout
-      );
-
-      return {
-        responseTime: response.data.response_time,
-        baseUrl: response.data.base_url,
-        results: response.data.results.map((item: any) => {
-          return {
-            url: item.url,
-            rawContent: item.raw_content,
-            images: item.images,
-            favicon: item.favicon,
-          };
-        }),
-        requestId: response.data.request_id,
-        ...(response.data.usage !== undefined && { usage: response.data.usage }),
-      };
-    } catch (err) {
-      if (err instanceof AxiosError) {
-        if (err.code === "ECONNABORTED") {
-          handleTimeoutError(requestTimeout);
-        }
-        if (err.response) {
-          handleRequestError(err.response as AxiosResponse);
-        }
-      }
-      throw new Error(
-        `An unexpected error occurred while making the request. Error: ${err}`
-      );
-    }
   };
 }

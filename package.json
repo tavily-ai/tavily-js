@@ -1,6 +1,6 @@
 {
   "name": "@tavily/core",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Official JavaScript library for Tavily.",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -53,7 +53,8 @@
   },
   "scripts": {
     "build": "tsup",
-    "test": "npm run build && node --test tests/search.test.mjs",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "npm run typecheck && npm run build && node --test tests/search.test.mjs tests/transport.test.mjs",
     "test:package": "npm run build && node --test tests/package.test.mjs",
     "prepublishOnly": "npm run build"
   },
@@ -73,13 +74,13 @@
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
+    "https-proxy-agent": "^9.1.0",
     "tsup": "^9.0.0",
     "typescript": "^5.6.2",
     "zod": "^4.6.7"
   },
   "dependencies": {
-    "axios": "^1.7.7",
-    "https-proxy-agent": "^9.1.0"
+    "axios": "^1.7.7"
   },
   "peerDependencies": {
     "zod": "^4.0.0"

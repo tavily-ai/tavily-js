@@ -1,5 +1,35 @@
 # Changelog
 
+## 1.1.0
+
+### Added
+
+- `createTransport(options)` and the `TavilyTransport` type: authenticated `post`, `get`, and
+  `stream` calls that resolve with the raw, untouched response body. Handles credentials,
+  keyless mode, identity headers, proxies, base URL, and timeouts. The typed client methods now
+  use it.
+- `TavilyRequestError`, thrown for non-2xx responses, with `status` and `body`.
+- `TavilyKeylessLimitError` now extends `TavilyRequestError`, so it also carries `status` and
+  `body`, and gains `window`: the cap window from the keyless-limit envelope, or `null`.
+
+### Changed
+
+- `TavilyContinuationPath` declares the fields the API sends (`resource`, `instruction`, and
+  `params`, which for `bonus_credits` holds `questions` and `credits_on_completion`) and names
+  the known `type` values while still accepting any string and any extra field.
+- `bonusEligible` is true when a `bonus_credits` continuation path is present; the server
+  sends no `eligible` flag.
+- A keyless-limit envelope is recognized only when `error.code` is a string and
+  `error.next_actions` is an array, so other `{ error: { code } }` bodies (for example a 400
+  validation error) throw `TavilyRequestError` instead of `TavilyKeylessLimitError`.
+- Error messages are unchanged from 1.0.0, except that bodies of the form
+  `{ error: { message } }` now surface `error.message` instead of the JSON dump.
+- `npm test` now runs `npm run typecheck` (`tsc --noEmit`) before building.
+- `https-proxy-agent` is bundled into dist; the package's only runtime dependency is axios.
+- Keyless mode now honors `clientSource` for `X-Client-Source`; the default stays
+  `tavily-js-keyless`.
+- Streaming research errors now carry the parsed error body instead of an unread stream.
+
 ## 1.0.0 (unreleased)
 
 ### Added
