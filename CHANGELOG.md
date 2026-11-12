@@ -25,6 +25,7 @@
 - Error messages are unchanged from 1.0.0, except that bodies of the form
   `{ error: { message } }` now surface `error.message` instead of the JSON dump.
 - `npm test` now runs `npm run typecheck` (`tsc --noEmit`) before building.
+- `https-proxy-agent` is bundled into dist; the package's only runtime dependency is axios.
 - Keyless mode now honors `clientSource` for `X-Client-Source`; the default stays
   `tavily-js-keyless`.
 - Streaming research errors now carry the parsed error body instead of an unread stream.

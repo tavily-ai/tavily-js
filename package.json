@@ -74,13 +74,13 @@
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
+    "https-proxy-agent": "^9.1.0",
     "tsup": "^9.0.0",
     "typescript": "^5.6.2",
     "zod": "^4.6.7"
   },
   "dependencies": {
-    "axios": "^1.7.7",
-    "https-proxy-agent": "^9.1.0"
+    "axios": "^1.7.7"
   },
   "peerDependencies": {
     "zod": "^4.0.0"

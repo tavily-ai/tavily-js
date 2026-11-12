@@ -2,7 +2,8 @@
     "compilerOptions": {
         "outDir": "./dist/",
         "rootDir": "./src/",
-        "module": "commonjs",
+        "module": "esnext",
+        "moduleResolution": "bundler",
         "target": "ES6",
         "strict": true,
         "esModuleInterop": true,
