@@ -9,6 +9,15 @@ import {
 import { TavilyTransport } from "./transport";
 import { identityHeaders } from "./headers";
 
+type RawResearch = {
+  request_id: string;
+  created_at: string;
+  status: string;
+  input: string;
+  model: string;
+  response_time: number;
+};
+
 export function _research(transport: TavilyTransport): TavilyResearchFunction {
   return async function research(
     input: string,
@@ -31,7 +40,7 @@ export function _research(transport: TavilyTransport): TavilyResearchFunction {
       return transport.stream("research", body, opts);
     }
 
-    const data: any = await transport.post("research", body, opts);
+    const data = await transport.post<RawResearch>("research", body, opts);
 
     return {
       requestId: data.request_id,
@@ -51,12 +60,12 @@ export function _getResearch(transport: TavilyTransport): TavilyGetResearchFunct
   ) {
     const { includeUsage } = options;
 
-    const data = await transport.get(`research/${requestId}`, {
-      timeoutSeconds: 60, // Default timeout for GET requests
-      params: { include_usage: includeUsage },
-    });
-    return data as
-      | TavilyGetResearchResponse
-      | TavilyGetResearchIncompleteStatusResponse;
+    return transport.get<TavilyGetResearchResponse | TavilyGetResearchIncompleteStatusResponse>(
+      `research/${requestId}`,
+      {
+        timeoutSeconds: 60, // Default timeout for GET requests
+        params: { include_usage: includeUsage },
+      }
+    );
   };
 }

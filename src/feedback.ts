@@ -5,6 +5,8 @@ import {
 import { TavilyTransport } from "./transport";
 import { identityHeaders } from "./headers";
 
+type RawFeedback = { success: boolean; feedback_id: string; response_time: number };
+
 export function _feedback(transport: TavilyTransport): TavilyFeedbackFunction {
   return async function feedback(options: TavilyFeedbackOptions) {
     // sessionId here is the past search session being reviewed (request body field
@@ -30,7 +32,7 @@ export function _feedback(transport: TavilyTransport): TavilyFeedbackFunction {
 
     const requestTimeout = timeout ?? 10; // /feedback is a lightweight write (no search/crawl work), default to 10s
 
-    const data: any = await transport.post(
+    const data = await transport.post<RawFeedback>(
       "feedback",
       {
         session_id: sessionId,

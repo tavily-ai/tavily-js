@@ -2,23 +2,52 @@
  * Error types thrown by the Tavily SDK.
  */
 
-/** An entry of the keyless-limit envelope's `next_actions`, as the API sends it. */
+/**
+ * An entry of the keyless-limit envelope's `next_actions`, as the API sends it. A
+ * `bonus_credits` action carries `params: { questions: string[]; credits_on_completion: number }`.
+ */
 export type TavilyContinuationPath = {
-  type: "signup" | "agentic_payment" | "bonus_credits";
+  type: "signup" | "agentic_payment" | "bonus_credits" | (string & {});
   resource?: string;
   instruction?: string;
-  eligible?: boolean;
-  [key: string]: unknown;
+  params?: Record<string, unknown>;
+  [key: string]: any;
 };
 
 /**
- * Thrown when a keyless request is rejected by the Tavily API — for example
- * when an hourly, daily, or monthly cap has been reached, or when the
- * requested endpoint is not available without an API key.
+ * Thrown for any non-2xx Tavily API response other than a keyless-limit
+ * envelope. Carries the HTTP status and the parsed body.
  */
-export class TavilyKeylessLimitError extends Error {
+export class TavilyRequestError extends Error {
+  public readonly status: number;
+  public readonly body: unknown;
+
+  constructor(params: { message: string; status: number; body: unknown }) {
+    super(params.message);
+    this.name = "TavilyRequestError";
+    this.status = params.status;
+    this.body = params.body;
+
+    Object.setPrototypeOf(this, TavilyRequestError.prototype);
+  }
+}
+
+/**
+ * Thrown when the Tavily API answers with a keyless-limit envelope. The server uses it
+ * for several statuses; `capType` is the envelope's `error.code`:
+ *
+ * | status | code |
+ * |---|---|
+ * | 429 | `hourly_cap_reached`, `daily_cap_reached`, `monthly_cap_reached_*` |
+ * | 401 | `api_key_required` |
+ * | 403 | `abuse_blocked` |
+ * | 404 | `unsupported_endpoint` |
+ * | 503 | `service_unavailable` |
+ */
+export class TavilyKeylessLimitError extends TavilyRequestError {
   public readonly capType: string;
   public readonly retryAfter: number | null;
+  /** True when the envelope offers a `bonus_credits` continuation path. */
   public readonly bonusEligible: boolean;
   public readonly continuationPaths: TavilyContinuationPath[];
   /** The cap's window as the API names it (for example "hour"), or null when absent. */
@@ -26,13 +55,15 @@ export class TavilyKeylessLimitError extends Error {
 
   constructor(params: {
     message: string;
+    status: number;
+    body: unknown;
     capType: string;
     retryAfter: number | null;
     bonusEligible: boolean;
     continuationPaths: TavilyContinuationPath[];
     window?: string | null;
   }) {
-    super(params.message);
+    super(params);
     this.name = "TavilyKeylessLimitError";
     this.capType = params.capType;
     this.retryAfter = params.retryAfter;
@@ -44,62 +75,41 @@ export class TavilyKeylessLimitError extends Error {
   }
 }
 
-export function isKeylessLimitEnvelope(data: any): boolean {
-  return !!(
-    data &&
-    typeof data === "object" &&
-    data.error &&
-    typeof data.error === "object" &&
-    typeof data.error.code === "string" &&
-    Array.isArray(data.error.next_actions)
+type KeylessLimitEnvelope = {
+  error: {
+    code: string;
+    message?: unknown;
+    window?: unknown;
+    retry_after_seconds?: unknown;
+    next_actions: TavilyContinuationPath[];
+  };
+};
+
+export function isKeylessLimitEnvelope(data: unknown): data is KeylessLimitEnvelope {
+  const error = (data as { error?: unknown } | null)?.error as
+    | { code?: unknown; next_actions?: unknown }
+    | undefined;
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    typeof error.code === "string" &&
+    Array.isArray(error.next_actions)
   );
 }
 
 export function keylessLimitErrorFromEnvelope(
-  data: any
+  data: KeylessLimitEnvelope,
+  status: number
 ): TavilyKeylessLimitError {
-  const err = data.error ?? {};
-  const nextActions: TavilyContinuationPath[] = Array.isArray(err.next_actions)
-    ? err.next_actions
-    : [];
-  const bonusEligible = nextActions.some(
-    (a: any) => a?.type === "bonus_credits" && a?.eligible === true
-  );
-
+  const err = data.error;
   return new TavilyKeylessLimitError({
-    message: typeof err.message === "string" ? err.message : String(err.code),
-    capType: String(err.code),
-    retryAfter:
-      typeof err.retry_after_seconds === "number"
-        ? err.retry_after_seconds
-        : null,
-    bonusEligible,
-    continuationPaths: nextActions,
+    message: typeof err.message === "string" ? err.message : err.code,
+    status,
+    body: data,
+    capType: err.code,
+    retryAfter: typeof err.retry_after_seconds === "number" ? err.retry_after_seconds : null,
+    bonusEligible: err.next_actions.some((a) => a?.type === "bonus_credits"),
+    continuationPaths: err.next_actions,
     window: typeof err.window === "string" ? err.window : null,
   });
-}
-
-/**
- * Thrown for any non-2xx Tavily API response other than a keyless-limit
- * envelope. Carries the HTTP status and the parsed body.
- */
-export class TavilyRequestError extends Error {
-  public readonly status: number;
-  public readonly body: unknown;
-  public readonly docs?: string;
-
-  constructor(params: {
-    message: string;
-    status: number;
-    body: unknown;
-    docs?: string;
-  }) {
-    super(params.message);
-    this.name = "TavilyRequestError";
-    this.status = params.status;
-    this.body = params.body;
-    this.docs = params.docs;
-
-    Object.setPrototypeOf(this, TavilyRequestError.prototype);
-  }
 }

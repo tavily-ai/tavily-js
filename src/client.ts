@@ -9,8 +9,8 @@ import { _feedback } from "./feedback";
 
 const KEYLESS_UNSUPPORTED_MESSAGE =
   "Keyless mode only supports search and extract; provide an API key to use this method.";
-function makeKeylessUnsupported(methodName: string): (...args: any[]) => never {
-  return (..._args: any[]): never => {
+function makeKeylessUnsupported(methodName: string): (...args: unknown[]) => never {
+  return (..._args: unknown[]): never => {
     throw new Error(`${methodName}: ${KEYLESS_UNSUPPORTED_MESSAGE}`);
   };
 }

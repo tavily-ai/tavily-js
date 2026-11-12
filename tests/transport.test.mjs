@@ -60,14 +60,13 @@ test("keyless headers have the access mode, no Authorization, and honor clientSo
   assert.equal(calls[1].headers.get("X-Client-Source"), "my-cli-keyless");
 });
 
-test("432 rejects with TavilyRequestError carrying status, body and docs", async () => {
-  const body = { detail: { error: "Plan limit" }, documentation: "https://docs.tavily.com/x" };
+test("432 rejects with TavilyRequestError carrying status and body", async () => {
+  const body = { detail: { error: "Plan limit" } };
   const t = createTransport({ apiKey: "k", adapter: stub(432, body) });
   await assert.rejects(t.post("search", {}), (err) => {
     assert.ok(err instanceof TavilyRequestError);
     assert.equal(err.message, "Plan limit");
     assert.equal(err.status, 432);
-    assert.equal(err.docs, "https://docs.tavily.com/x");
     assert.deepEqual(err.body, body);
     return true;
   });
@@ -76,18 +75,29 @@ test("432 rejects with TavilyRequestError carrying status, body and docs", async
 test("keyless-limit envelope rejects with TavilyKeylessLimitError in keyed and keyless mode", async () => {
   const envelope = {
     error: {
-      code: "keyless_hourly_cap", message: "Cap hit", window: "hour", retry_after_seconds: 5,
-      next_actions: [{ type: "bonus_credits", eligible: true }],
+      code: "hourly_cap_reached", message: "Cap hit", window: "hour", retry_after_seconds: 5,
+      next_actions: [
+        { type: "signup", resource: "https://app.tavily.com", instruction: "Sign up" },
+        {
+          type: "bonus_credits", resource: "https://api.tavily.com/bonus", instruction: "Answer",
+          params: { questions: ["What are you building?"], credits_on_completion: 50 },
+        },
+      ],
     },
   };
   for (const options of [{ apiKey: "k" }, {}]) {
     const t = createTransport({ ...options, adapter: stub(429, envelope) });
     await assert.rejects(t.post("search", {}), (err) => {
       assert.ok(err instanceof TavilyKeylessLimitError);
-      assert.equal(err.capType, "keyless_hourly_cap");
+      assert.ok(err instanceof TavilyRequestError);
+      assert.equal(err.status, 429);
+      assert.deepEqual(err.body, envelope);
+      assert.equal(err.message, "Cap hit");
+      assert.equal(err.capType, "hourly_cap_reached");
       assert.equal(err.window, "hour");
       assert.equal(err.retryAfter, 5);
       assert.equal(err.bonusEligible, true);
+      assert.deepEqual(err.continuationPaths, envelope.error.next_actions);
       return true;
     });
   }

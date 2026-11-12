@@ -5,6 +5,20 @@ import {
 import { TavilyTransport } from "./transport";
 import { identityHeaders } from "./headers";
 
+type RawExtract = {
+  response_time: number;
+  results: Array<{
+    url: string;
+    title: string | null;
+    raw_content: string;
+    images?: string[];
+    favicon?: string;
+  }>;
+  failed_results: Array<{ url: string; error: string }>;
+  request_id: string;
+  usage?: { credits: number };
+};
+
 export function _extract(transport: TavilyTransport): TavilyExtractFunction {
   return async function extract(
     urls: Array<string>,
@@ -14,7 +28,7 @@ export function _extract(transport: TavilyTransport): TavilyExtractFunction {
 
     const requestTimeout = timeout ?? 30; // Default to 30s
 
-    const data: any = await transport.post(
+    const data = await transport.post<RawExtract>(
       "extract",
       {
         urls,
@@ -33,7 +47,7 @@ export function _extract(transport: TavilyTransport): TavilyExtractFunction {
 
     return {
       responseTime: data.response_time,
-      results: data.results.map((result: any) => {
+      results: data.results.map((result) => {
         return {
           url: result.url,
           title: result.title,
@@ -42,7 +56,7 @@ export function _extract(transport: TavilyTransport): TavilyExtractFunction {
           favicon: result.favicon,
         };
       }),
-      failedResults: data.failed_results.map((result: any) => {
+      failedResults: data.failed_results.map((result) => {
         return {
           url: result.url,
           error: result.error,

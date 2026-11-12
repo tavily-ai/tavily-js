@@ -8,15 +8,17 @@
   `stream` calls that resolve with the raw, untouched response body. Handles credentials,
   keyless mode, identity headers, proxies, base URL, and timeouts. The typed client methods now
   use it.
-- `TavilyRequestError`, thrown for non-2xx responses, with `status`, `body`, and `docs`
-  (the `documentation` URL from the response, when present).
-- `TavilyKeylessLimitError.window`: the cap window from the keyless-limit envelope, or `null`.
+- `TavilyRequestError`, thrown for non-2xx responses, with `status` and `body`.
+- `TavilyKeylessLimitError` now extends `TavilyRequestError`, so it also carries `status` and
+  `body`, and gains `window`: the cap window from the keyless-limit envelope, or `null`.
 
 ### Changed
 
-- `TavilyContinuationPath` is now typed as the API sends it:
-  `{ type: "signup" | "agentic_payment" | "bonus_credits"; resource?: string; instruction?: string }`.
-  The `url` and `details` fields were never sent.
+- `TavilyContinuationPath` declares the fields the API sends (`resource`, `instruction`, and
+  `params`, which for `bonus_credits` holds `questions` and `credits_on_completion`) and names
+  the known `type` values while still accepting any string and any extra field.
+- `bonusEligible` is true when a `bonus_credits` continuation path is present; the server
+  sends no `eligible` flag.
 - A keyless-limit envelope is recognized only when `error.code` is a string and
   `error.next_actions` is an array, so other `{ error: { code } }` bodies (for example a 400
   validation error) throw `TavilyRequestError` instead of `TavilyKeylessLimitError`.

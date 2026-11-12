@@ -5,6 +5,14 @@ import {
 import { TavilyTransport } from "./transport";
 import { identityHeaders } from "./headers";
 
+type RawCrawl = {
+  response_time: number;
+  base_url: string;
+  results: Array<{ url: string; raw_content: string; images: string[]; favicon?: string }>;
+  request_id: string;
+  usage?: { credits: number };
+};
+
 export function _crawl(transport: TavilyTransport): TavilyCrawlFunction {
   return async function crawl(
     url: string,
@@ -35,7 +43,7 @@ export function _crawl(transport: TavilyTransport): TavilyCrawlFunction {
 
     const requestTimeout = timeout ?? 150; // Default to 150s
 
-    const data: any = await transport.post(
+    const data = await transport.post<RawCrawl>(
       "crawl",
       {
         url: url,
@@ -63,7 +71,7 @@ export function _crawl(transport: TavilyTransport): TavilyCrawlFunction {
     return {
       responseTime: data.response_time,
       baseUrl: data.base_url,
-      results: data.results.map((item: any) => {
+      results: data.results.map((item) => {
         return {
           url: item.url,
           rawContent: item.raw_content,

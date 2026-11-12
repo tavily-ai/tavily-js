@@ -18,6 +18,34 @@ function serializeSearchParameters(parameters: Record<string, unknown>) {
   return { ...body, ...extras };
 }
 
+type RawImage = string | { url?: string; description?: string };
+
+type RawSearch = {
+  response_time: number;
+  images: RawImage[];
+  results: Array<{
+    title: string;
+    url: string;
+    content: string;
+    raw_content?: string;
+    score: number;
+    published_date: string;
+    favicon?: string;
+    id: string;
+    images?: RawImage[];
+  }>;
+  answer?: string;
+  request_id: string;
+  usage?: { credits: number };
+  auto_parameters?: {
+    include_domains?: TavilySearchOptions["includeDomains"];
+    exclude_domains?: TavilySearchOptions["excludeDomains"];
+    topic?: TavilySearchOptions["topic"];
+    time_range?: TavilySearchOptions["timeRange"];
+    search_depth?: TavilySearchOptions["searchDepth"];
+  };
+};
+
 export function _search(transport: TavilyTransport): TavilySearchFuncton {
   return async function search(
     query: string,
@@ -27,7 +55,7 @@ export function _search(transport: TavilyTransport): TavilySearchFuncton {
 
     const requestTimeout = timeout ?? 60; // Default to 60s
 
-    const data: any = await transport.post(
+    const data = await transport.post<RawSearch>(
       "search",
       serializeSearchParameters({
         query,
@@ -40,13 +68,12 @@ export function _search(transport: TavilyTransport): TavilySearchFuncton {
     return {
       query,
       responseTime: data.response_time,
-      images: data.images.map((image: any) => {
-        return {
-          url: image?.url || image,
-          description: image.description,
-        };
-      }),
-      results: data.results.map((result: any) => {
+      images: data.images.map((image) =>
+        typeof image === "string"
+          ? { url: image }
+          : { url: image.url ?? "", description: image.description }
+      ),
+      results: data.results.map((result) => {
         return {
           title: result.title,
           url: result.url,
@@ -57,15 +84,13 @@ export function _search(transport: TavilyTransport): TavilySearchFuncton {
           favicon: result.favicon,
           id: result.id,
           images: (Array.isArray(result.images) ? result.images : [])
-            .map((image: any) => ({
+            .map((image) => ({
               url: typeof image === "string" ? image : image?.url,
-              description:
-                typeof image?.description === "string"
-                  ? image.description
-                  : undefined,
+              description: typeof image === "string" ? undefined : image?.description,
             }))
-            .filter(({ url }: { url: unknown }) =>
-              typeof url === "string" && url.trim().length > 0
+            .filter(
+              (image): image is { url: string; description: string | undefined } =>
+                typeof image.url === "string" && image.url.trim().length > 0
             ),
         };
       }),

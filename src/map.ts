@@ -5,6 +5,14 @@ import {
 import { TavilyTransport } from "./transport";
 import { identityHeaders } from "./headers";
 
+type RawMap = {
+  response_time: number;
+  base_url: string;
+  results: string[];
+  request_id: string;
+  usage?: { credits: number };
+};
+
 export function _map(transport: TavilyTransport): TavilyMapFunction {
   return async function map(
     url: string,
@@ -30,7 +38,7 @@ export function _map(transport: TavilyTransport): TavilyMapFunction {
 
     const requestTimeout = timeout ?? 150; // Default to 150s
 
-    const data: any = await transport.post(
+    const data = await transport.post<RawMap>(
       "map",
       {
         url: url,

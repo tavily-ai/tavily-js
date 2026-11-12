@@ -13,8 +13,11 @@ const BASE_URL = "https://api.tavily.com";
 type RequestOpts = { timeoutSeconds?: number; headers?: Record<string, string> };
 
 export type TavilyTransport = {
-  post(endpoint: string, body: Record<string, unknown>, opts?: RequestOpts): Promise<unknown>;
-  get(endpoint: string, opts?: RequestOpts & { params?: Record<string, unknown> }): Promise<unknown>;
+  post<T = unknown>(endpoint: string, body: Record<string, unknown>, opts?: RequestOpts): Promise<T>;
+  get<T = unknown>(
+    endpoint: string,
+    opts?: RequestOpts & { params?: Record<string, unknown> }
+  ): Promise<T>;
   stream(
     endpoint: string,
     body: Record<string, unknown>,
@@ -79,7 +82,7 @@ export function createTransport(
       return new Error(`An unexpected error occurred while making the request. Error: ${err}`);
     }
     const { status } = err.response;
-    let body: any = err.response.data;
+    let body: unknown = err.response.data;
     if (body instanceof Readable) {
       try {
         body = await readBody(body);
@@ -88,16 +91,18 @@ export function createTransport(
       }
     }
     if (isKeylessLimitEnvelope(body)) {
-      return keylessLimitErrorFromEnvelope(body);
+      return keylessLimitErrorFromEnvelope(body, status);
     }
-    const message = body?.detail?.error ?? body?.error?.message;
-    const docs = body?.documentation;
+    const { detail, error } = (body ?? {}) as {
+      detail?: { error?: unknown };
+      error?: { message?: unknown };
+    };
+    const message = detail?.error ?? error?.message;
     return new TavilyRequestError({
       message:
         typeof message === "string" && message ? message : `${status} Error: ${JSON.stringify(body)}`,
       status,
       body,
-      docs: typeof docs === "string" ? docs : undefined,
     });
   }
 
