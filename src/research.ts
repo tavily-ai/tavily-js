@@ -18,13 +18,22 @@ type RawResearch = {
   response_time: number;
 };
 
+type RawGetResearch = {
+  request_id: string;
+  created_at?: string;
+  response_time: number;
+  [key: string]: unknown;
+};
+
 export function _research(transport: TavilyTransport): TavilyResearchFunction {
   return async function research(
     input: string,
     options: Partial<TavilyResearchOptions> = {}
   ) {
-    const { model, outputSchema, stream, citationFormat, timeout, sessionId, humanId, clientName, ...kwargs } =
-      options;
+    const {
+      model, outputSchema, stream, citationFormat, includeDomains, excludeDomains, outputLength,
+      timeout, sessionId, humanId, clientName, ...kwargs
+    } = options;
 
     const opts = { timeoutSeconds: timeout, headers: identityHeaders({ sessionId, humanId, clientName }) };
     const body = {
@@ -33,6 +42,9 @@ export function _research(transport: TavilyTransport): TavilyResearchFunction {
       output_schema: outputSchema,
       stream,
       citation_format: citationFormat,
+      include_domains: includeDomains,
+      exclude_domains: excludeDomains,
+      output_length: outputLength,
       ...kwargs,
     };
 
@@ -60,12 +72,15 @@ export function _getResearch(transport: TavilyTransport): TavilyGetResearchFunct
   ) {
     const { includeUsage } = options;
 
-    return transport.get<TavilyGetResearchResponse | TavilyGetResearchIncompleteStatusResponse>(
-      `research/${requestId}`,
+    const { request_id, created_at, response_time, ...rest } = await transport.get<RawGetResearch>(
+      `research/${encodeURIComponent(requestId)}`,
       {
         timeoutSeconds: 60, // Default timeout for GET requests
         params: { include_usage: includeUsage },
       }
     );
+
+    return { ...rest, requestId: request_id, createdAt: created_at, responseTime: response_time } as
+      TavilyGetResearchResponse | TavilyGetResearchIncompleteStatusResponse;
   };
 }

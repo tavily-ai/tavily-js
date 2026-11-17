@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Research options `includeDomains`, `excludeDomains`, `outputLength` and `files`.
+- `favicon` on `getResearch` sources.
+
+### Changed
+
+- **Behaviour change:** `getResearch` now returns `requestId`, `createdAt` and `responseTime`, as
+  its types already declared, instead of the API's snake_case keys. Code that read `request_id`,
+  `created_at` or `response_time` at runtime must switch to the camelCase keys.
+- `getResearch` URL-encodes the request id.
+
 ## 1.1.0
 
 ### Added

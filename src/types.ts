@@ -217,6 +217,11 @@ export type TavilyResearchOptions = {
   outputSchema?: Record<string, any>;
   stream?: boolean;
   citationFormat?: "numbered" | "mla" | "apa" | "chicago";
+  includeDomains?: string[];
+  excludeDomains?: string[];
+  outputLength?: "short" | "standard" | "long";
+  /** Up to 5 base64-encoded `.txt`, `.md` or `.json` files the agent can cite. */
+  files?: Array<{ name: string; data: string; type?: "base64" }>;
   timeout?: number;
   sessionId?: string;
   humanId?: string;
@@ -245,6 +250,7 @@ export type TavilyGetResearchResponse = {
   sources: Array<{
     title: string;
     url: string;
+    favicon?: string;
   }>;
   responseTime: number;
   usage?: { credits?: number; [key: string]: unknown };
