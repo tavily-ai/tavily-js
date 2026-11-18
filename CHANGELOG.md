@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.1.1
+
+### Changed
+
+- `getResearch` returns `requestId`, `createdAt`, and `responseTime` as its types declare,
+  instead of the API's snake_case keys.
+
 ## 1.1.0
 
 ### Added
