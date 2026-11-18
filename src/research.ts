@@ -3,8 +3,6 @@ import {
   TavilyResearchFunction,
   TavilyGetResearchFunction,
   TavilyGetResearchOptions,
-  TavilyGetResearchIncompleteStatusResponse,
-  TavilyGetResearchResponse,
 } from "./types";
 import { TavilyTransport } from "./transport";
 import { identityHeaders } from "./headers";
@@ -16,6 +14,16 @@ type RawResearch = {
   input: string;
   model: string;
   response_time: number;
+};
+
+type RawGetResearch = {
+  request_id: string;
+  created_at: string;
+  status: string;
+  content: string | Record<string, any>;
+  sources: Array<{ title: string; url: string }>;
+  response_time: number;
+  usage?: { credits?: number; [key: string]: unknown };
 };
 
 export function _research(transport: TavilyTransport): TavilyResearchFunction {
@@ -60,12 +68,19 @@ export function _getResearch(transport: TavilyTransport): TavilyGetResearchFunct
   ) {
     const { includeUsage } = options;
 
-    return transport.get<TavilyGetResearchResponse | TavilyGetResearchIncompleteStatusResponse>(
-      `research/${requestId}`,
-      {
-        timeoutSeconds: 60, // Default timeout for GET requests
-        params: { include_usage: includeUsage },
-      }
-    );
+    const data = await transport.get<RawGetResearch>(`research/${requestId}`, {
+      timeoutSeconds: 60, // Default timeout for GET requests
+      params: { include_usage: includeUsage },
+    });
+
+    return {
+      requestId: data.request_id,
+      createdAt: data.created_at,
+      status: data.status,
+      content: data.content,
+      sources: data.sources,
+      responseTime: data.response_time,
+      usage: data.usage,
+    };
   };
 }
